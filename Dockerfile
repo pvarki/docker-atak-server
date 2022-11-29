@@ -28,9 +28,16 @@ SHELL ["/bin/bash", "-lc"]
 
 
 FROM deps as install
+COPY docker/entrypoint.sh /entrypoint.sh
 RUN cd /tmp \
     && unzip takserver.zip \
     && rm takserver.zip \
     && export DISTDIR=`echo takserver-docker-full*` \
     && mv $DISTDIR"/tak" /opt/tak \
     && true
+COPY scripts /opt/scripts
+COPY templates /opt/templates
+
+
+FROM install as run
+ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
