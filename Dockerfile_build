@@ -1,0 +1,35 @@
+FROM gradle:jdk11-jammy as build-deps
+ENV \
+  # locale
+  LC_ALL=C.UTF-8
+RUN apt-get update && apt-get install -y \
+        git \
+        openssh-client \
+        build-essential \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    # githublab ssh host keys
+    && mkdir -p -m 0700 ~/.ssh && ssh-keyscan gitlab.com github.com | sort > ~/.ssh/known_hosts \
+    && true
+
+FROM build-deps as checkout
+ENV \
+  REPO_URL="https://github.com/TAK-Product-Center/Server.git" \
+  GIT_TAG="4.5-RELEASE-72"
+WORKDIR /home/gradle/src
+RUN git clone --depth 1 --branch $GIT_TAG $REPO_URL \
+    && true
+
+FROM checkout as build
+RUN cd Server/src \
+    && ./gradlew clean bootWar bootJar shadowJar \
+    && true
+
+FROM build as output
+RUN mkdir /output \
+    && find . -type f -name '*RELEASE*.jar' -exec mv {} /output/ \; \
+    && ls -lah /output
+
+FROM alpine as files
+COPY --from=output /output /jars
+CMD ["cp", "-r", "/jars/", "/output/"]
