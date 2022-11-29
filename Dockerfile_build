@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     && mkdir -p -m 0700 ~/.ssh && ssh-keyscan gitlab.com github.com | sort > ~/.ssh/known_hosts \
     && true
 
+
 FROM build-deps as checkout
 ENV \
   REPO_URL="https://github.com/TAK-Product-Center/Server.git" \
@@ -20,16 +21,28 @@ WORKDIR /home/gradle/src
 RUN git clone --depth 1 --branch $GIT_TAG $REPO_URL \
     && true
 
-FROM checkout as build
+
+FROM checkout as build-jars
 RUN cd Server/src \
     && ./gradlew clean bootWar bootJar shadowJar \
     && true
 
-FROM build as output
-RUN mkdir /output \
-    && find . -type f -name '*RELEASE*.jar' -exec mv {} /output/ \; \
-    && ls -lah /output
+
+FROM build-jars as build-dockers
+RUN cd Server/src \
+    && ./gradlew buildDocker \
+    && true
+
+
+FROM build-dockers as output
+RUN mkdir /jars \
+    && mkdir /zips \
+    && find . -type f -name '*RELEASE*.jar' -exec mv {} /jars/ \; \
+    && find . -type f -name '*-docker-*.zip' -exec mv {} /zips/ \; \
+    && ls -lah /jars /zips
+
 
 FROM alpine as files
-COPY --from=output /output /jars
-CMD ["cp", "-r", "/jars/", "/output/"]
+COPY --from=output /jars /jars
+COPY --from=output /zips /zips
+CMD ["cp", "-r", "/jars/", "/zips/",  "/output/"]
