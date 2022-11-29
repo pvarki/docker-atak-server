@@ -1,0 +1,10 @@
+# General good ideas to ignore
+.idea
+.git
+.cache
+.venv
+
+# docker build files (so just changing them does not invalidate *all* caches)
+.dockerignore
+Dockerfile
+Dockerfile_build
