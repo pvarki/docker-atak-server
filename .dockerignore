@@ -4,6 +4,9 @@
 .cache
 .venv
 
+# the default mount for outputs from the package builder
+outputs
+
 # docker build files (so just changing them does not invalidate *all* caches)
 .dockerignore
 Dockerfile

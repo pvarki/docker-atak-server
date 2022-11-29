@@ -14,11 +14,10 @@ RUN apt-get update && apt-get install -y \
 
 
 FROM build-deps as checkout
-ENV \
-  REPO_URL="https://github.com/TAK-Product-Center/Server.git" \
-  GIT_TAG="4.7-RELEASE-32"
+ARG REPO_URL="https://github.com/TAK-Product-Center/Server.git"
+ARG TAK_RELEASE="4.7-RELEASE-32"
 WORKDIR /home/gradle/src
-RUN git clone --depth 1 --branch $GIT_TAG $REPO_URL \
+RUN git clone --depth 1 --branch $TAK_RELEASE $REPO_URL \
     && true
 
 
