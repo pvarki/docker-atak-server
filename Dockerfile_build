@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
 FROM build-deps as checkout
 ENV \
   REPO_URL="https://github.com/TAK-Product-Center/Server.git" \
-  GIT_TAG="4.5-RELEASE-72"
+  GIT_TAG="4.7-RELEASE-32"
 WORKDIR /home/gradle/src
 RUN git clone --depth 1 --branch $GIT_TAG $REPO_URL \
     && true
@@ -30,7 +30,7 @@ RUN cd Server/src \
 
 FROM build-jars as build-dockers
 RUN cd Server/src \
-    && ./gradlew buildDocker \
+    && ./gradlew buildDocker buildFullDocker buildHardenedDocker \
     && true
 
 
