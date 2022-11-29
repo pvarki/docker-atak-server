@@ -1,9 +1,16 @@
-=====================
-Build TAK Server Java
-=====================
+===================
+Run TAK Java server
+===================
 
-Docker based builds to build the Java distribution
+tldr::
 
+    cp takserver.env.example takserver.env
+    # edit the file
+    docker-compose -p tak up -d
+
+
+Gradle builds
+^^^^^^^^^^^^^
 
 Build the distribution::
 
