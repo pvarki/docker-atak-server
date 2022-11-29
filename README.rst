@@ -4,6 +4,7 @@ Run TAK Java server
 
 tldr::
 
+    docker build --progress=plain -t takserver:latest -t takserver:4.7-RELEASE-32 .
     cp takserver.env.example takserver.env
     # edit the file
     docker-compose -p tak up -d

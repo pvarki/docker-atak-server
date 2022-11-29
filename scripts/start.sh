@@ -1,6 +1,7 @@
 #!/usr/bin/env -S /bin/bash
 set -e
 TR=/opt/tak
+CONFIG=${TR}/data/CoreConfig.xml
 
 # Clean shutdowns
 MESSAGING_PID=null
@@ -23,8 +24,8 @@ kill() {
 trap kill SIGINT
 trap kill SIGTERM
 
-# Create config
-cat /opt/templates/CoreConfig.tpl | gomplate >${TR}/CoreConfig.xml
+# (re-)Create config
+cat /opt/templates/CoreConfig.tpl | gomplate >${CONFIG}
 
 # Change to workdir
 cd ${TR}
@@ -40,7 +41,8 @@ API_PID=$!
 java -jar -Xmx${PLUGIN_MANAGER_MAX_HEAP}m takserver-pm.jar &
 PM_PID=$!
 
-# TODO: make sure admin user is enabled
+# fire-and-forget admin enable
+/opt/scripts/enable_admin.sh &
 
 # Wait for the java processes to exit
 while [ $MESSAGING_PID != null ]
