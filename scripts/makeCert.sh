@@ -80,7 +80,7 @@ cat ca-trusted.pem >> "${SNAME}"-trusted.pem
 # now make pkcs12 and jks keystore files
 if [[ "$1" == "server" ||  "$1" == "client" ]]; then
   openssl pkcs12 -export -in "${SNAME}".pem -inkey "${SNAME}".key -out "${SNAME}".p12 -name "${SNAME}" -CAfile ca.pem -passin pass:${PASS} -passout pass:${PASS}
-  openssl pkcs12 -export -in "${SNAME}".pem -out "${SNAME}-public".p12 -name "${SNAME}" -CAfile ca.pem -passout pass:public
+  openssl pkcs12 -export -in "${SNAME}".pem -nokeys -out "${SNAME}-public".p12 -name "${SNAME}" -CAfile ca.pem -passout pass:public
   keytool -importkeystore -deststorepass "${PASS}" -destkeypass "${PASS}" -destkeystore "${SNAME}".jks -srckeystore "${SNAME}".p12 -srcstoretype PKCS12 -srcstorepass "${PASS}" -alias "${SNAME}"
 else # a CA
   openssl pkcs12 -export -in "${SNAME}"-trusted.pem -out truststore-"${SNAME}".p12 -nokeys -passout pass:${CAPASS}

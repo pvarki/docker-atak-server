@@ -20,6 +20,8 @@ RUN apt update && apt-get install -y \
       unzip \
       tini \
       curl \
+      pwgen \
+      zip \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /usr/bin/wait-for-it.sh \
@@ -40,9 +42,6 @@ RUN cd /tmp \
     && true
 COPY scripts /opt/scripts
 COPY templates /opt/templates
-# Override some distribution scripts we do not want to just patch in firstrun
-RUN mv /opt/scrips/makeCert.sh /opt/tak/certs/ \
-    && true
 
 FROM install as run
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
