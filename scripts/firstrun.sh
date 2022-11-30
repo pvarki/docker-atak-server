@@ -49,7 +49,9 @@ else
 
   chmod -R 777 ${TR}/data/
 
+  echo "Wait for postgres"
   WAITFORIT_TIMEOUT=60 /usr/bin/wait-for-it.sh ${POSTGRES_ADDRESS}:5432 -- true
+  echo "Init db"
   java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_USER} -password ${POSTGRES_PASSWORD} upgrade
 
   date -u +"%Y%m%dT%H%M" >/opt/firstrun.done

@@ -25,7 +25,10 @@ trap kill SIGINT
 trap kill SIGTERM
 
 # (re-)Create config
+echo "(Re-)Creating config"
 cat /opt/templates/CoreConfig.tpl | gomplate >${CONFIG}
+# make sure it's in tak root too
+cp ${CONFIG} /opt/tak/
 
 # Change to workdir
 cd ${TR}
@@ -34,6 +37,7 @@ cd ${TR}
 . ./setenv.sh
 
 # Start the processes
+echo "Starting processes"
 java -jar -Xmx${MESSAGING_MAX_HEAP}m -Dspring.profiles.active=messaging takserver.war &
 MESSAGING_PID=$!
 java -jar -Xmx${API_MAX_HEAP}m -Dspring.profiles.active=api -Dkeystore.pkcs12.legacy takserver.war &
@@ -42,6 +46,7 @@ java -jar -Xmx${PLUGIN_MANAGER_MAX_HEAP}m takserver-pm.jar &
 PM_PID=$!
 
 # fire-and-forget admin enable
+echo "Spawning admin creator"
 /opt/scripts/enable_admin.sh &
 
 # Wait for the java processes to exit
