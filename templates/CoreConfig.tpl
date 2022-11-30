@@ -105,8 +105,8 @@
     <security>
         <tls context="TLSv1.2"
             keymanager="SunX509"
-            keystore="JKS" keystoreFile="/opt/tak/certs/files/takserver.jks" keystorePass="atakatak"
-            truststore="JKS" truststoreFile="/opt/tak/certs/files/truststore-root.jks" truststorePass="atakatak">
+            keystore="JKS" keystoreFile="/opt/tak/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
+            truststore="JKS" truststoreFile="/opt/tak/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}">
          <!-- <crl _name="TAKServer CA" crlFile="certs/files/ca.crl"/>  -->
 
         </tls>
@@ -115,8 +115,8 @@
          <!--
          <tls context="TLSv1.2"
             keymanager="SunX509"
-            keystore="JKS" keystoreFile="certs/TAKServer.jks" keystorePass="atakatak"
-            truststore="JKS" truststoreFile="certs/truststore.jks" truststorePass="atakatak">
+            keystore="JKS" keystoreFile="certs/TAKServer.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
+            truststore="JKS" truststoreFile="certs/truststore.jks" truststorePass="{{.Env.CA_PASS}}">
         </tls>
         -->
 
@@ -127,8 +127,8 @@
       <federation-server port="9000">
         <tls context="TLSv1.2"
          keymanager="SunX509"
-         keystore="JKS" keystoreFile="certs/files/takserver.jks" keystorePass="atakatak"
-         truststore="JKS" truststoreFile="certs/files/fed-truststore.jks" truststorePass="atakatak"/>
+         keystore="JKS" keystoreFile="certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
+         truststore="JKS" truststoreFile="certs/files/fed-truststore.jks" truststorePass="{{.Env.CA_PASS}}"/>
       </federation-server>
     </federation>
 -->
@@ -136,8 +136,8 @@
  <!--
  <tls context="TLSv1.2"
          keymanager="SunX509"
-         keystore="JKS" keystoreFile="certs/TAKServer.jks" keystorePass="atakatak"
-         truststore="JKS" truststoreFile="certs/fed-truststore.jks" truststorePass="atakatak"/>
+         keystore="JKS" keystoreFile="certs/TAKServer.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
+         truststore="JKS" truststoreFile="certs/fed-truststore.jks" truststorePass="{{.Env.CA_PASS}}"/>
  -->
 
 <!--
