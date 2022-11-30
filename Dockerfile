@@ -40,7 +40,9 @@ RUN cd /tmp \
     && true
 COPY scripts /opt/scripts
 COPY templates /opt/templates
-
+# Override some distribution scripts we do not want to just patch in firstrun
+RUN mv /opt/scrips/makeCert.sh /opt/tak/certs/ \
+    && true
 
 FROM install as run
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
