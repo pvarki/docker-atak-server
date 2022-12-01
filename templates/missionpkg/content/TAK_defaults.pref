@@ -42,6 +42,8 @@
         <entry key="dynamicReportingRateMaxReliable" class="class java.lang.String">5</entry>
         <entry key="locationReportingStrategy" class="class java.lang.String">Dynamic</entry>
         <entry key="constantReportingRateUnreliable" class="class java.lang.String">3</entry>
+        <!-- audible alarms -->
+        <entry key="alert_notification" class="class java.lang.Boolean">true</entry>
 
     </preference>
 </preferences>
