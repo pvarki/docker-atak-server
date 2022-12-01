@@ -1,0 +1,49 @@
+<?xml version='1.0' standalone='yes'?>
+<preferences>
+    <preference version="1" name="com.atakmap.app.civ_preferences">
+
+        <!-- Clear content -->
+        <entry key="clearingContent" class="class java.lang.Boolean">true</entry>
+        <!-- Default Map  -->
+        <entry key="MobileLayerSelectionAdapter.selected" class="class java.lang.String">02 Google Hybrid</entry>
+        <entry key="rng_meters_display_pref" class="class java.lang.String">2000</entry>
+        <!-- Unit for Speed, 0 = imperial 1 = metric -->
+        <entry key="speed_unit_pref" class="class java.lang.String">1</entry>
+        <!-- Bearing units -->
+        <entry key="rab_brg_units_pref" class="class java.lang.String">0</entry>
+        <!-- Default setting -->
+        <entry key="rab_color_pref" class="class java.lang.String">red</entry>
+        <entry key="status_tilt_enabled" class="class java.lang.Boolean">true</entry>
+        <entry key="lastViewedLayer.autoselect" class="class java.lang.Boolean">true</entry>
+        <entry key="viewshed_prefs_height_above" class="class java.lang.Integer">0</entry>
+        <!-- Metric force -->
+        <entry key="rab_rng_units_pref" class="class java.lang.String">1</entry>
+        <entry key="status_3d_enabled" class="class java.lang.Boolean">true</entry>
+        <!-- Hide Phone number -->
+        <entry key="saHasPhoneNumber" class="class java.lang.Boolean">false</entry>
+        <entry key="locationUnitType" class="class java.lang.String">a-f-G-U-C</entry>
+        <entry key="viewshed_prefs_radius" class="class java.lang.Integer">1000</entry>
+        <!-- Height over Sea level force -->
+        <entry key="alt_display_pref" class="class java.lang.String">MSL</entry>
+        <!-- MGRS Coordinate force -->
+        <entry key="coord_display_pref" class="class java.lang.String">MGRS</entry>
+        <!-- Magnetic nord force -->
+        <entry key="rab_north_ref_pref" class="class java.lang.String">1</entry>
+        <!-- Altitude data, 0 = imperial 1= metric -->
+        <entry key="alt_unit_pref" class="class java.lang.String">1</entry>
+        <entry key="lastViewedLayer.active" class="class java.lang.String">Mobile</entry>
+        <!-- reporting rates -->
+        <entry key="dynamicReportingRateMinUnreliable" class="class java.lang.String">20</entry>
+        <entry key="dynamicReportingRateMaxUnreliable" class="class java.lang.String">5</entry>
+        <entry key="dynamicReportingRateMinReliable" class="class java.lang.String">20</entry>
+        <entry key="dynamicReportingRateStationaryUnreliable" class="class java.lang.String">30</entry>
+        <entry key="dynamicReportingRateStationaryReliable" class="class java.lang.String">180</entry>
+        <entry key="constantReportingRateReliable" class="class java.lang.String">15</entry>
+        <entry key="dynamicReportingRateMaxReliable" class="class java.lang.String">5</entry>
+        <entry key="locationReportingStrategy" class="class java.lang.String">Dynamic</entry>
+        <entry key="constantReportingRateUnreliable" class="class java.lang.String">3</entry>
+        <!-- audible alarms -->
+        <entry key="alert_notification" class="class java.lang.Boolean">true</entry>
+
+    </preference>
+</preferences>

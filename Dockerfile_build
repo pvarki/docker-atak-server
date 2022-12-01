@@ -1,0 +1,47 @@
+FROM gradle:jdk11-jammy as build-deps
+ENV \
+  # locale
+  LC_ALL=C.UTF-8
+RUN apt-get update && apt-get install -y \
+        git \
+        openssh-client \
+        build-essential \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    # githublab ssh host keys
+    && mkdir -p -m 0700 ~/.ssh && ssh-keyscan gitlab.com github.com | sort > ~/.ssh/known_hosts \
+    && true
+
+
+FROM build-deps as checkout
+ARG REPO_URL="https://github.com/TAK-Product-Center/Server.git"
+ARG TAK_RELEASE="4.7-RELEASE-32"
+WORKDIR /home/gradle/src
+RUN git clone --depth 1 --branch $TAK_RELEASE $REPO_URL \
+    && true
+
+
+FROM checkout as build-jars
+RUN cd Server/src \
+    && ./gradlew clean bootWar bootJar shadowJar \
+    && true
+
+
+FROM build-jars as build-dockers
+RUN cd Server/src \
+    && ./gradlew buildDocker buildFullDocker buildHardenedDocker \
+    && true
+
+
+FROM build-dockers as output
+RUN mkdir /jars \
+    && mkdir /zips \
+    && find . -type f -name '*RELEASE*.jar' -exec mv {} /jars/ \; \
+    && find . -type f -name '*-docker-*.zip' -exec mv {} /zips/ \; \
+    && ls -lah /jars /zips
+
+
+FROM alpine as files
+COPY --from=output /jars /jars
+COPY --from=output /zips /zips
+CMD ["cp", "-r", "/jars/", "/zips/",  "/output/"]

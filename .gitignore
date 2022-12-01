@@ -2,3 +2,6 @@
 .DS_Store
 ._DS_Store
 .idea
+outputs
+takserver.env
+takdata
