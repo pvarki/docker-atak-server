@@ -1,0 +1,78 @@
+[tool.poetry]
+name = "takcertsapi"
+version = "0.1.0"
+description = "Implement RESTFul API for handling certs and mission pkgs for clients"
+authors = ["Eero af Heurlin <eero.afheurlin@iki.fi>"]
+homepage = "https://github.com/PVARKI-projekti/docker-atak-server"
+repository = "https://github.com/PVARKI-projekti/docker-atak-server"
+license = "MIT"
+readme = "README.rst"
+
+[tool.poetry.scripts]
+takcertsapi = "takcertsapi.console:takcertsapi_cli"
+
+
+[tool.black]
+line-length = 120
+target-version = ['py38']
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+  |  __pycache__
+)
+'''
+
+[tool.pytest.ini_options]
+junit_family="xunit2"
+addopts="--cov=takcertsapi --cov-fail-under=65 --cov-branch"
+asyncio_mode="strict"
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.pylint.design]
+max-parents = 10
+
+[tool.pylint.messages_control]
+disable=["fixme", "W1202", "C0330", "C0209"]
+
+[tool.pylint.similarities]
+min-similarity-lines = 8
+ignore-imports = true
+
+[tool.coverage.run]
+omit = ["tests/*"]
+branch = true
+
+[tool.poetry.dependencies]
+python = "^3.8"
+libadvian = "^1.0"
+click = "^8.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.1"
+coverage = "^6.3"
+pytest-cov = "^3.0"
+pylint = "^2.13"
+black = "^22.3"
+bandit = "^1.7"
+mypy = "^0.942"
+pre-commit = "^2.17"
+pytest-asyncio = "^0.18"
+bump2version = "^1.0"
+detect-secrets = "^1.2"
+
+[build-system]
+requires = ["poetry-core>=1.2.0"]
+build-backend = "poetry.core.masonry.api"
