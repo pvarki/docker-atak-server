@@ -16,7 +16,7 @@ CLIENT_ROUTER = APIRouter()
 
 
 @CLIENT_ROUTER.get("/api/v1/clients", tags=["clients"], response_model=ListClients)
-async def read_clients() -> ListClients:
+async def list_clients() -> ListClients:
     """List available client zip packages"""
     pkgs: List[ClientPkg] = []
     for filepth in CONFIG.client_zips_location.glob("*.zip"):
