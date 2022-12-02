@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from .clients.api import CLIENT_ROUTER
 
-APP = FastAPI()
+APP = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 APP.include_router(CLIENT_ROUTER)
 
 
