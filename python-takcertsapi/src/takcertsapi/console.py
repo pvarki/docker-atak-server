@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 @click.option("-l", "--loglevel", help="Python log level, 10=DEBUG, 20=INFO, 30=WARNING, 40=CRITICAL", default=30)
 @click.option("-v", "--verbose", count=True, help="Shorthand for info/debug loglevel (-v/-vv)")
 def takcertsapi_cli(loglevel: int, verbose: int) -> None:
-    """Implement RESTFul API for handling certs and mission pkgs for clients"""
+    """Implement RESTFul API for handling certs_files and mission pkgs for clients"""
     if verbose == 1:
         loglevel = 20
     if verbose >= 2:
