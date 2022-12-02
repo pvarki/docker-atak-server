@@ -33,7 +33,7 @@ def test_post_exists(client: TestClient, temp_cert_path: None) -> None:
     assert resp.status_code == 409
 
 
-@pytest.mark.parametrize("clientname", ["koira16", "ääkköstesti"])
+@pytest.mark.parametrize("clientname", ["koira16", "KAHVI2"])
 def test_post(client: TestClient, temp_cert_path: None, clientname: str) -> None:
     """Test creating new pkg"""
     _ = temp_cert_path
@@ -49,3 +49,11 @@ def test_post(client: TestClient, temp_cert_path: None, clientname: str) -> None
         if item.name == clientname:
             found = True
     assert found
+
+
+@pytest.mark.parametrize("clientname", ["; rm -rf ~;", "ääkkösiä", "'; exit 1;"])
+def test_post_badnames(client: TestClient, temp_cert_path: None, clientname: str) -> None:
+    """Test creating new pkg"""
+    _ = temp_cert_path
+    resp = client.post(f"/api/v1/clients/{clientname}")
+    assert resp.status_code == 403

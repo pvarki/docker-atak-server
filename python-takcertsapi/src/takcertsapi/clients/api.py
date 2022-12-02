@@ -36,6 +36,15 @@ async def read_client(clientname: str) -> FileResponse:
 @CLIENT_ROUTER.post("/api/v1/clients/{clientname}", tags=["clients"], response_class=FileResponse)
 async def create_client(clientname: str) -> FileResponse:
     """Get a specific client zip pkg"""
+    try:
+        parsed = list(shlex.shlex(clientname))
+        if parsed[0] != clientname:
+            LOGGER.warning("shlex parsed {} != {}".format(parsed, clientname))
+            raise HTTPException(status_code=403, detail="Keep to safe single-word names")
+    except ValueError as exc:
+        LOGGER.warning("shlex could not parse {}".format(clientname))
+        raise HTTPException(status_code=403, detail="Keep to safe single-word names") from exc
+
     pth = CONFIG.client_zips_location / Path(f"{clientname}.zip")
     if pth.exists():
         raise HTTPException(status_code=409, detail="Client package already exists")
