@@ -40,7 +40,7 @@ services:
       - "8000:8000"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.fastapi.rule=Host(`{{.Env.TAK_SERVER_NAME}}`)"
+      - "traefik.http.routers.fastapi.rule=Host(`{{.Env.TAK_SERVER_ADDRESS}}`)"
       - "traefik.http.routers.fastapi.tls=true"
       - "traefik.http.routers.fastapi.tls.certresolver=letsencrypt"
 
