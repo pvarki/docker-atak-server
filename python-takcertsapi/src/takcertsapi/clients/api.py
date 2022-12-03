@@ -61,5 +61,6 @@ async def create_client(client: CreateClientPkg) -> FileResponse:
         LOGGER.error("command '{}' exited with code {}".format(cmd, proc.returncode))
         LOGGER.info("stdout: {!r}".format(stdout))
         LOGGER.info("stderr: {!r}".format(stderr))
+        LOGGER.info("path {} exists: {}".format(pth, pth.exists()))
         raise HTTPException(status_code=500, detail="Package creation failed. Contact server administration")
     return FileResponse(pth)

@@ -10,6 +10,12 @@ then
   echo "CLIENT_CERT_NAME not set"
   exit 1
 fi
+if [ -f ${ZIPTGT}/${CLIENT_CERT_NAME}.zip ] || [ -f ${CR}/files/${CLIENT_CERT_NAME}.key ]
+then
+  echo "${CLIENT_CERT_NAME} already exists !"
+  exit 1
+fi
+
 export CLIENT_CERT_PASSWORD=`pwgen -cn1 20 1`  # pragma: allowlist secret
 
 tmp_dir=$(mktemp -d "/tmp/newclient.XXXXXXXX")
@@ -26,5 +32,11 @@ cp ${CR}/files/${CLIENT_CERT_NAME}.p12 ${WORK_DIR}/content/
 cp ${CR}/files/takserver-public.p12 ${WORK_DIR}/content/
 
 cd $WORK_DIR
-zip -r ${ZIPTGT}/${CLIENT_CERT_NAME}.zip ./
+zip -r ${tmp_dir}/${CLIENT_CERT_NAME}.zip ./
+if [ -f ${ZIPTGT}/${CLIENT_CERT_NAME}.zip ]
+then
+  echo "${CLIENT_CERT_NAME} Was created while we worked !"
+  exit 1
+fi
+mv ${tmp_dir}/${CLIENT_CERT_NAME}.zip ${ZIPTGT}/
 rm -rf $tmp_dir
