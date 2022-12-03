@@ -63,6 +63,7 @@ SHELL ["/bin/bash", "-lc"]
 # Copy only requirements, to cache them in docker layer:
 WORKDIR /pysetup
 COPY scripts /opt/scripts
+COPY templates /opt/templates
 COPY python-takcertsapi/poetry.lock python-takcertsapi/pyproject.toml /pysetup/
 # Install basic requirements (utilizing an internal docker wheelhouse if available)
 RUN --mount=type=ssh pip3 install wheel virtualenv \
@@ -97,6 +98,8 @@ FROM python:3.8-slim-bullseye as production
 COPY --from=production_build /tmp/wheelhouse /tmp/wheelhouse
 COPY --from=production_build /docker-entrypoint.sh /docker-entrypoint.sh
 COPY --from=production_build /opt/scripts /opt/scripts
+COPY --from=production_build /opt/templates /opt/templates
+COPY --from=hairyhenderson/gomplate:stable /gomplate /bin/gomplate
 WORKDIR /app
 # Install system level deps for running the package (not devel versions for building wheels)
 # and install the wheels we built in the previous step. generate default config
@@ -105,6 +108,7 @@ RUN --mount=type=ssh apt-get update && apt-get install -y \
         openssl \
         libffi7 \
         tini \
+        pwgen \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && chmod a+x /docker-entrypoint.sh \
