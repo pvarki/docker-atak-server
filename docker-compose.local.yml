@@ -21,6 +21,38 @@ services:
       - '8446:8446'
       - '8089:8089'
 
+  certapi:
+    image: pvarkiprojekti/takserver:certsapi-latest
+    build:
+      context: .
+      dockerfile: python-takcertsapi/Dockerfile
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      - "takserver"
+    volumes:
+      - 'takserver_certs:/opt/tak/data/certs'
+    networks:
+      - taknet
+    expose:
+      - 8000
+    ports:
+      - "8000:8000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fastapi.rule=Host(`takcertsapi.localhost`)"
+
+  traefik:
+    image: traefik:v2.2
+    networks:
+      - taknet
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "$PWD/traefik.local.toml:/etc/traefik/traefik.toml"
+
   takdb:
     image: postgis/postgis:15-3.3
     networks:
