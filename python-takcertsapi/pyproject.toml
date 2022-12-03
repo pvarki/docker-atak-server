@@ -8,9 +8,6 @@ repository = "https://github.com/PVARKI-projekti/docker-atak-server"
 license = "MIT"
 readme = "README.rst"
 
-[tool.poetry.scripts]
-takcertsapi = "takcertsapi.console:takcertsapi_cli"
-
 
 [tool.black]
 line-length = 120
@@ -61,6 +58,7 @@ libadvian = "^1.0"
 click = "^8.0"
 fastapi = "^0.88"
 uvicorn = {version = "^0.20", extras = ["standard"]}
+gunicorn = "^20.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1"

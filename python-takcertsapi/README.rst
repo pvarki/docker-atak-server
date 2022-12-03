@@ -33,9 +33,9 @@ and Linux::
 Creating a development container
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Build image, create container and start it::
+Build image, create container and start it (NOTE: use ../ as context)::
 
-    docker build --ssh default --target devel_shell -t takcertsapi:devel_shell .
+    docker build --progress=plain --ssh default --target devel_shell -t takcertsapi:devel_shell -f ./Dockerfile ../
     docker create --name takcertsapi_devel -v `pwd`":/app" -it `echo $DOCKER_SSHAGENT` takcertsapi:devel_shell
     docker start -i takcertsapi_devel
 
@@ -58,7 +58,7 @@ Test suite
 You can use the devel shell to run py.test when doing development, for CI use
 the "tox" target in the Dockerfile::
 
-    docker build --ssh default --target tox -t takcertsapi:tox .
+    docker build --progress=plain --ssh default --target tox -t takcertsapi:tox .
     docker run --rm -it -v `pwd`":/app" `echo $DOCKER_SSHAGENT` takcertsapi:tox
 
 Production docker
@@ -67,7 +67,7 @@ Production docker
 There's a "production" target as well for running the application, remember to change that
 architecture tag to arm64 if building on ARM::
 
-    docker build --ssh default --target production -t takcertsapi:latest .
+    docker build --progress=plain --ssh default --target production -f ./Dockerfile -t takcertsapi:amd64-latest ../
     docker run -it --name takcertsapi takcertsapi:amd64-latest
 
 Development

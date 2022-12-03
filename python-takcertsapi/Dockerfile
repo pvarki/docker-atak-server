@@ -43,10 +43,10 @@ RUN apt-get update && apt-get install -y \
         build-essential \
         libffi-dev \
         libssl-dev \
-        libzmq3-dev \
         tini \
         openssh-client \
         cargo \
+        openssl \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     # githublab ssh
@@ -62,7 +62,8 @@ SHELL ["/bin/bash", "-lc"]
 
 # Copy only requirements, to cache them in docker layer:
 WORKDIR /pysetup
-COPY ./poetry.lock ./pyproject.toml /pysetup/
+COPY scripts /opt/scripts
+COPY python-takcertsapi/poetry.lock python-takcertsapi/pyproject.toml /pysetup/
 # Install basic requirements (utilizing an internal docker wheelhouse if available)
 RUN --mount=type=ssh pip3 install wheel virtualenv \
     && poetry export -f requirements.txt --without-hashes -o /tmp/requirements.txt \
@@ -77,9 +78,9 @@ RUN --mount=type=ssh pip3 install wheel virtualenv \
 ####################################
 FROM builder_base as production_build
 # Copy entrypoint script
-COPY ./docker/entrypoint.sh /docker-entrypoint.sh
+COPY python-takcertsapi/docker/entrypoint.sh /docker-entrypoint.sh
 # Only files needed by production setup
-COPY ./poetry.lock ./pyproject.toml ./README.rst ./src /app/
+COPY python-takcertsapi/poetry.lock python-takcertsapi/pyproject.toml python-takcertsapi/README.rst python-takcertsapi/src /app/
 WORKDIR /app
 # Build the wheel package with poetry and add it to the wheelhouse
 RUN --mount=type=ssh source /.venv/bin/activate \
@@ -95,13 +96,14 @@ RUN --mount=type=ssh source /.venv/bin/activate \
 FROM python:3.8-slim-bullseye as production
 COPY --from=production_build /tmp/wheelhouse /tmp/wheelhouse
 COPY --from=production_build /docker-entrypoint.sh /docker-entrypoint.sh
+COPY --from=production_build /opt/scripts /opt/scripts
 WORKDIR /app
 # Install system level deps for running the package (not devel versions for building wheels)
 # and install the wheels we built in the previous step. generate default config
 RUN --mount=type=ssh apt-get update && apt-get install -y \
         bash \
+        openssl \
         libffi7 \
-        libzmq5 \
         tini \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
@@ -129,7 +131,7 @@ RUN --mount=type=ssh source /.venv/bin/activate \
 # Run tests #
 #############
 FROM devel_build as test
-COPY . /app
+COPY python-takcertsapi /app
 WORKDIR /app
 ENTRYPOINT ["/usr/bin/tini", "--", "docker/entrypoint-test.sh"]
 # Re run install to get the service itself installed
@@ -144,7 +146,7 @@ RUN --mount=type=ssh source /.venv/bin/activate \
 ###########
 FROM devel_build as devel_shell
 # Copy everything to the image
-COPY . /app
+COPY python-takcertsapi /app
 WORKDIR /app
 RUN apt-get update && apt-get install -y zsh \
     && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \

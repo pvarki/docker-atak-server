@@ -1,8 +1,7 @@
 #!/bin/bash -l
 set -e
 if [ "$#" -eq 0 ]; then
-  # TODO: Put your actual program start here
-  exec true
+  exec gunicorn takcertsapi.api:APP --bind 0.0.0.0:8000 -w 4 -k uvicorn.workers.UvicornWorker
 else
   exec "$@"
 fi

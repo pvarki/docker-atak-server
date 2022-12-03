@@ -1,5 +1,6 @@
 """Main API entrypoint"""
 from typing import Mapping
+
 from fastapi import FastAPI
 
 from .clients.api import CLIENT_ROUTER
