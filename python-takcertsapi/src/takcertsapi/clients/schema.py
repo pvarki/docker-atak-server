@@ -24,7 +24,7 @@ class CreateClientPkg(BaseModel):
     """Create a new client pkg"""
 
     name: str = Field(
-        regex=r"^[a-zA-Z0-9-]{3,}$",
+        regex=r"^[a-zA-Z0-9_-]{3,}$",
         description="Client name, ASCII characters and numbers only, minimum 3 characters",
         example="FOX-2",
     )

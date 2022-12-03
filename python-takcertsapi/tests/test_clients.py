@@ -33,7 +33,7 @@ def test_post_exists(client: TestClient, temp_cert_path: None) -> None:
     assert resp.status_code == 409
 
 
-@pytest.mark.parametrize("clientname", ["koira16", "KAHVI2"])
+@pytest.mark.parametrize("clientname", ["koira16", "KAHVI_2", "FOX-2"])
 def test_post(client: TestClient, temp_cert_path: None, clientname: str) -> None:
     """Test creating new pkg"""
     _ = temp_cert_path
