@@ -5,14 +5,15 @@ from typing import List
 from pathlib import Path
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 
 from ..config import INSTANCE as CONFIG
 from .schema import ListClients, ClientPkg
+from ..security import check_bearer_token
 
 LOGGER = logging.getLogger(__name__)
-CLIENT_ROUTER = APIRouter()
+CLIENT_ROUTER = APIRouter(dependencies=[Depends(check_bearer_token)])
 
 
 @CLIENT_ROUTER.get("/api/v1/clients", tags=["clients"], response_model=ListClients)

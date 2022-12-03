@@ -4,6 +4,7 @@ import os
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
+import functools
 
 ZIPS_DEFAULT = "/opt/tak/certs_files/files/clientpkgs"
 CERTS_DEFAULT = "/opt/tak/certs_files/files"
@@ -54,6 +55,7 @@ class Config:
     client_zips_location: Path = field(default_factory=get_client_zips_location)
     user_certs_location: Path = field(default_factory=get_user_certs_location)
     zip_script_location: Path = field(default_factory=get_zip_script_location)
+    accept_bearer: Optional[str] = field(default_factory=functools.partial(os.getenv, "BEARER_ACCEPT"))
 
 
 INSTANCE = Config()
