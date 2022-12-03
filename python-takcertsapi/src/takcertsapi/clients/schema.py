@@ -1,7 +1,7 @@
 """Client zip request and response schemas"""
 from typing import List
 
-from pydantic import BaseModel  # pylint: disable=E0611  # false-positive
+from pydantic import BaseModel, Field  # pylint: disable=E0611  # false-positive
 
 
 # pylint: disable=R0903
@@ -14,7 +14,17 @@ class ClientPkg(BaseModel):
     url: str
 
 
-class ListClients(BaseModel):
+class ClientList(BaseModel):
     """List available client zip packages"""
 
     items: List[ClientPkg]
+
+
+class CreateClientPkg(BaseModel):
+    """Create a new client pkg"""
+
+    name: str = Field(
+        regex=r"^[a-zA-Z0-9-]{3,}$",
+        description="Client name, ASCII characters and numbers only, minimum 3 characters",
+        example="FOX-2",
+    )

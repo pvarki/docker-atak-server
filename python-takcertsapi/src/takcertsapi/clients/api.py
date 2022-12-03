@@ -9,20 +9,20 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 
 from ..config import INSTANCE as CONFIG
-from .schema import ListClients, ClientPkg
+from .schema import ClientList, ClientPkg, CreateClientPkg
 from ..security import check_bearer_token
 
 LOGGER = logging.getLogger(__name__)
 CLIENT_ROUTER = APIRouter(dependencies=[Depends(check_bearer_token)])
 
 
-@CLIENT_ROUTER.get("/api/v1/clients", tags=["clients"], response_model=ListClients)
-async def list_clients() -> ListClients:
+@CLIENT_ROUTER.get("/api/v1/clients", tags=["clients"], response_model=ClientList)
+async def list_clients() -> ClientList:
     """List available client zip packages"""
     pkgs: List[ClientPkg] = []
     for filepth in CONFIG.client_zips_location.glob("*.zip"):
         pkgs.append(ClientPkg(name=filepth.stem, url=f"/api/v1/clients/{filepth.stem}"))
-    return ListClients(items=pkgs)
+    return ClientList(items=pkgs)
 
 
 @CLIENT_ROUTER.get("/api/v1/clients/{clientname}", tags=["clients"], response_class=FileResponse)
@@ -34,9 +34,10 @@ async def read_client(clientname: str) -> FileResponse:
     return FileResponse(pth)
 
 
-@CLIENT_ROUTER.post("/api/v1/clients/{clientname}", tags=["clients"], response_class=FileResponse)
-async def create_client(clientname: str) -> FileResponse:
+@CLIENT_ROUTER.post("/api/v1/clients", tags=["clients"], response_class=FileResponse)
+async def create_client(client: CreateClientPkg) -> FileResponse:
     """Get a specific client zip pkg"""
+    clientname = client.name
     try:
         parsed = list(shlex.shlex(clientname))
         if parsed[0] != clientname:
