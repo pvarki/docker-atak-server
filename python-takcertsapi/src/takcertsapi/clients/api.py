@@ -40,8 +40,8 @@ async def create_client(client: CreateClientPkg) -> FileResponse:
     clientname = client.name
     try:
         parsed = list(shlex.shlex(clientname))
-        if len(parsed) == 3 and parsed[1] in ("-", "_"):
-            if f"{parsed[0]}-{parsed[2]}" != clientname:
+        if len(parsed) == 3 and parsed[1] in ("_",):
+            if f"{parsed[0]}{parsed[1]}{parsed[2]}" != clientname:
                 LOGGER.warning("shlex 3-part {} != {}".format(parsed, clientname))
                 raise HTTPException(status_code=403, detail="Keep to safe single-word names")
         elif parsed[0] != clientname:

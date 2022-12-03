@@ -109,6 +109,7 @@ RUN --mount=type=ssh apt-get update && apt-get install -y \
         libffi7 \
         tini \
         pwgen \
+        zip \
         python3 \
         python3-pip \
     && apt-get autoremove -y \
