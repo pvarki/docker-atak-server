@@ -94,7 +94,7 @@ RUN --mount=type=ssh source /.venv/bin/activate \
 #########################
 # Main production build #
 #########################
-FROM python:3.8-slim-bullseye as production
+FROM openjdk:11-jdk-bullseye as production
 COPY --from=production_build /tmp/wheelhouse /tmp/wheelhouse
 COPY --from=production_build /docker-entrypoint.sh /docker-entrypoint.sh
 COPY --from=production_build /opt/scripts /opt/scripts
@@ -109,6 +109,8 @@ RUN --mount=type=ssh apt-get update && apt-get install -y \
         libffi7 \
         tini \
         pwgen \
+        python3 \
+        python3-pip \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && chmod a+x /docker-entrypoint.sh \
