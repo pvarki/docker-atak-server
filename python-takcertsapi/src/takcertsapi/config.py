@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 import functools
 
-ZIPS_DEFAULT = "/opt/tak/certs_files/files/clientpkgs"
-CERTS_DEFAULT = "/opt/tak/certs_files/files"
+ZIPS_DEFAULT = "/opt/tak/data/certs/files/clientpkgs"
+CERTS_DEFAULT = "/opt/tak/data/certs/files"
 MKZIP_DEFAULT = "/opt/scripts/make_client_zip.sh"
 LOGGER = logging.getLogger(__name__)
 
