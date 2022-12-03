@@ -22,7 +22,7 @@ services:
       - '8089:8089'
 
   certapi:
-    image: pvarkiprojekti/takserver:certsapi-20221203-1633
+    image: pvarkiprojekti/takserver:certsapi-20221203-1820
     build:
       context: .
       dockerfile: python-takcertsapi/Dockerfile
