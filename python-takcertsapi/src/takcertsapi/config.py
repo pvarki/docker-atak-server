@@ -12,6 +12,9 @@ MKZIP_DEFAULT = "/opt/scripts/make_client_zip.sh"
 LOGGER = logging.getLogger(__name__)
 
 
+# FIXME: use from starlette.config import Config for reading env configs
+
+
 def get_env_path(key: str, default: Optional[str] = None) -> Optional[Path]:
     """Read env key and return as Path"""
     if (pth := os.getenv(key)) is not None:
