@@ -56,6 +56,8 @@ branch = true
 python = "^3.8"
 libadvian = "^1.0"
 click = "^8.0"
+# When https://github.com/tiangolo/fastapi/issues/5857 is fixed switch to this form
+#fastapi = ">=0.90,<1.0"  # caret behaviour on 0.x is to lock to 0.x.*
 fastapi = "^0.88"
 uvicorn = {version = "^0.20", extras = ["standard"]}
 gunicorn = "^20.1"
