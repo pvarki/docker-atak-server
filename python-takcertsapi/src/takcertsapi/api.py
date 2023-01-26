@@ -4,9 +4,11 @@ from typing import Mapping
 from fastapi import FastAPI
 
 from .clients.api import CLIENT_ROUTER
+from .users.api import USER_ROUTER
 
 APP = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 APP.include_router(CLIENT_ROUTER)
+APP.include_router(USER_ROUTER)
 
 
 @APP.get("/api/v1")

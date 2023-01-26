@@ -1,4 +1,4 @@
-"""API implementation"""
+"""Clients API implementation"""
 import asyncio
 import shlex
 from typing import List
@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse
 
 from ..config import INSTANCE as CONFIG
 from .schema import ClientList, ClientPkg, CreateClientPkg
-from ..security import check_bearer_token
+from ..security import check_bearer_token, validate_client_name
 
 LOGGER = logging.getLogger(__name__)
 CLIENT_ROUTER = APIRouter(dependencies=[Depends(check_bearer_token)])
@@ -38,18 +38,7 @@ async def read_client(clientname: str) -> FileResponse:
 async def create_client(client: CreateClientPkg) -> FileResponse:
     """Get a specific client zip pkg"""
     clientname = client.name
-    try:
-        parsed = list(shlex.shlex(clientname))
-        if len(parsed) == 3 and parsed[1] in ("_",):
-            if f"{parsed[0]}{parsed[1]}{parsed[2]}" != clientname:
-                LOGGER.warning("shlex 3-part {} != {}".format(parsed, clientname))
-                raise HTTPException(status_code=403, detail="Keep to safe single-word names")
-        elif parsed[0] != clientname:
-            LOGGER.warning("shlex parsed {} != {}".format(parsed, clientname))
-            raise HTTPException(status_code=403, detail="Keep to safe single-word names")
-    except ValueError as exc:
-        LOGGER.warning("shlex could not parse {}".format(clientname))
-        raise HTTPException(status_code=403, detail="Keep to safe single-word names") from exc
+    validate_client_name(clientname)
 
     pth = CONFIG.client_zips_location / Path(f"{clientname}.zip")
     if pth.exists():
