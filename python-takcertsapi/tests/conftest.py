@@ -57,6 +57,8 @@ def temp_cert_path(monkeypatch: Any, nice_tmpdir: str) -> Generator[None, None, 
     zips_path.mkdir()
     copy_tree(str(SCRIPTS_PATH), str(scripts_path))
     copy_tree(str(CERTS_PATH), str(certs_path))
+    makecert_script = scripts_path / Path("makeCert.sh")
+    enableadmin_script = scripts_path / Path("enable_admin.sh")
 
     monkeypatch.setenv("CLIENT_ZIPS_PATH", str(zips_path))
     monkeypatch.setenv("USER_CERTS_PATH", str(certs_path))
@@ -67,5 +69,7 @@ def temp_cert_path(monkeypatch: Any, nice_tmpdir: str) -> Generator[None, None, 
     monkeypatch.setattr(takcertsapi.config.INSTANCE, "client_zips_location", zips_path)
     monkeypatch.setattr(takcertsapi.config.INSTANCE, "user_certs_location", certs_path)
     monkeypatch.setattr(takcertsapi.config.INSTANCE, "zip_script_location", client_script)
+    monkeypatch.setattr(takcertsapi.config.INSTANCE, "makecert_location", makecert_script)
+    monkeypatch.setattr(takcertsapi.config.INSTANCE, "enableadmin_location", enableadmin_script)
     yield
     monkeypatch.undo()

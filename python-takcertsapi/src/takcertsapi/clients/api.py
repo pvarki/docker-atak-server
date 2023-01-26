@@ -36,7 +36,7 @@ async def read_client(clientname: str) -> FileResponse:
 
 @CLIENT_ROUTER.post("/api/v1/clients", tags=["clients"], response_class=FileResponse)
 async def create_client(client: CreateClientPkg) -> FileResponse:
-    """Get a specific client zip pkg"""
+    """Create new client zip pkg"""
     clientname = client.name
     validate_client_name(clientname)
 
@@ -44,7 +44,7 @@ async def create_client(client: CreateClientPkg) -> FileResponse:
     if pth.exists():
         raise HTTPException(status_code=409, detail="Client package already exists")
     cmd = f"CLIENT_CERT_NAME={shlex.quote(clientname)} {CONFIG.zip_script_location}"
-    proc = await asyncio.create_subprocess_shell(cmd)
+    proc = await asyncio.create_subprocess_shell(cmd, stderr=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE)
     stdout, stderr = await proc.communicate()
     if proc.returncode != 0 or not pth.exists():
         LOGGER.error("command '{}' exited with code {}".format(cmd, proc.returncode))

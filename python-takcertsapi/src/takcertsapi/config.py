@@ -9,6 +9,8 @@ import functools
 ZIPS_DEFAULT = "/opt/tak/data/certs/files/clientpkgs"
 CERTS_DEFAULT = "/opt/tak/data/certs/files"
 MKZIP_DEFAULT = "/opt/scripts/make_client_zip.sh"
+MAKECERT_DEFAULT = "/opt/tak/data/certs/makeCert.sh"
+ENABLEADMIN_DEFAULT = "/opt/scripts/enable_admin.sh"
 LOGGER = logging.getLogger(__name__)
 
 
@@ -51,6 +53,24 @@ def get_zip_script_location() -> Path:
     raise ValueError("got empty path")
 
 
+def get_admin_script_location() -> Path:
+    """Get path to enable_admin.sh"""
+    if pth := get_env_path("ENABLEADMIN_PATH", ENABLEADMIN_DEFAULT):
+        if not pth.exists() or not pth.is_dir():
+            LOGGER.error("{} is not a directory we can access".format(pth))
+        return pth
+    raise ValueError("got empty path")
+
+
+def get_cert_script_location() -> Path:
+    """Get path to makeCert.sh"""
+    if pth := get_env_path("MAKECERT_PATH", MAKECERT_DEFAULT):
+        if not pth.exists() or not pth.is_dir():
+            LOGGER.error("{} is not a directory we can access".format(pth))
+        return pth
+    raise ValueError("got empty path")
+
+
 @dataclass()
 class Config:
     """Keep config in one place"""
@@ -58,6 +78,8 @@ class Config:
     client_zips_location: Path = field(default_factory=get_client_zips_location)
     user_certs_location: Path = field(default_factory=get_user_certs_location)
     zip_script_location: Path = field(default_factory=get_zip_script_location)
+    makecert_location: Path = field(default_factory=get_cert_script_location)
+    enableadmin_location: Path = field(default_factory=get_admin_script_location)
     accept_bearer: Optional[str] = field(default_factory=functools.partial(os.getenv, "BEARER_ACCEPT"))
 
 
