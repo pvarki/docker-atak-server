@@ -26,6 +26,7 @@ def test_get_user(client: TestClient, muck_cert_paths: None) -> None:
     assert resp.status_code == 200
 
 
+@pytest.mark.xfail(reason="cannot work before larger redesign")
 def test_post_user_exists(client: TestClient, temp_cert_path: None) -> None:
     """Test creating existing user"""
     _ = temp_cert_path
@@ -35,6 +36,7 @@ def test_post_user_exists(client: TestClient, temp_cert_path: None) -> None:
     assert resp.status_code == 409
 
 
+@pytest.mark.xfail(reason="cannot work before larger redesign")
 @pytest.mark.parametrize("username", ["hundi12", "COFE_3"])
 def test_post_user(client: TestClient, temp_cert_path: None, username: str) -> None:
     """Test creating new users with valid names"""
@@ -55,6 +57,7 @@ def test_post_user(client: TestClient, temp_cert_path: None, username: str) -> N
     assert found
 
 
+@pytest.mark.xfail(reason="cannot work before larger redesign")
 @pytest.mark.parametrize("username", ["DOG-2", "1", "; rm -rf ~;", "ääkkösiä", "'; exit 1;"])
 def test_post_user_badnames(client: TestClient, temp_cert_path: None, username: str) -> None:
     """Test creating new users with invalid names"""

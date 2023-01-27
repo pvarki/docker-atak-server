@@ -10,6 +10,7 @@ from .config import INSTANCE as CONFIG
 
 LOGGER = logging.getLogger(__name__)
 BEARER = HTTPBearer(description="Bearer token required for access")
+EXCLUDE_CERT_NAMES = ("takserver", "truststore-root")
 
 
 async def check_bearer_token(token: HTTPAuthorizationCredentials = Security(BEARER)) -> HTTPAuthorizationCredentials:

@@ -47,6 +47,7 @@ RUN apt-get update && apt-get install -y \
         openssh-client \
         cargo \
         openssl \
+        curl \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     # githublab ssh
@@ -55,6 +56,8 @@ RUN apt-get update && apt-get install -y \
     && curl -sSL https://install.python-poetry.org | python3 - \
     && echo 'export PATH="/root/.local/bin:$PATH"' >>/root/.profile \
     && export PATH="/root/.local/bin:$PATH" \
+    && curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /usr/bin/wait-for-it.sh \
+    && chmod a+x /usr/bin/wait-for-it.sh \
     && true
 
 SHELL ["/bin/bash", "-lc"]
@@ -100,6 +103,7 @@ COPY --from=production_build /docker-entrypoint.sh /docker-entrypoint.sh
 COPY --from=production_build /opt/scripts /opt/scripts
 COPY --from=production_build /opt/templates /opt/templates
 COPY --from=hairyhenderson/gomplate:stable /gomplate /bin/gomplate
+COPY --from=production_build /usr/bin/wait-for-it.sh /usr/bin/wait-for-it.sh
 WORKDIR /app
 # Install system level deps for running the package (not devel versions for building wheels)
 # and install the wheels we built in the previous step. generate default config
