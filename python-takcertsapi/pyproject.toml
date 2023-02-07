@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "takcertsapi"
-version = "0.1.0"
+version = "1.0.0"
 description = "Implement RESTFul API for handling certs and mission pkgs for clients"
 authors = ["Eero af Heurlin <eero.afheurlin@iki.fi>"]
 homepage = "https://github.com/PVARKI-projekti/docker-atak-server"
