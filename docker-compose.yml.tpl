@@ -24,6 +24,7 @@ services:
   certapi:
     image: pvarkiprojekti/takserver:certsapi-latest
     build:
+      target: production
       context: .
       dockerfile: python-takcertsapi/Dockerfile
     env_file:
