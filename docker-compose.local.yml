@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   takserver:
-    image: pvarki/takserver:4.7-RELEASE-32
+    image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
     build:
       context: .
       dockerfile: Dockerfile
@@ -22,7 +22,7 @@ services:
       - '8089:8089'
 
   certapi:
-    image: pvarki/takserver:certsapi-latest
+    image: "pvarki/takserver:certsapi-latest${DOCKER_TAG_EXTRA}"
     build:
       target: production
       context: .
