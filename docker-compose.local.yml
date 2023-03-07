@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      cache_from: [ "pvarki/tak-server-dist:4.7-RELEASE-32" ]
     env_file:
       - 'takserver.env'
     depends_on:
