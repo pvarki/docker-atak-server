@@ -1,9 +1,9 @@
 ########################################################################
-# We can't do COPY --from=pvarkiprojekti/tak-server-dist:$TAK_RELEASE  #
+# We can't do COPY --from=pvarki/tak-server-dist:$TAK_RELEASE  #
 # So work around like this                                             #
 ########################################################################
 ARG TAK_RELEASE="4.7-RELEASE-32"
-FROM pvarkiprojekti/tak-server-dist:$TAK_RELEASE as tak-files
+FROM pvarki/tak-server-dist:$TAK_RELEASE as tak-files
 RUN mv /zips/takserver-docker-full-*.zip /tmp/takserver.zip
 
 FROM openjdk:11-jdk-bullseye as deps

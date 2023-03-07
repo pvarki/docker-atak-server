@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   takserver:
-    image: pvarkiprojekti/takserver:4.7-RELEASE-32
+    image: pvarki/takserver:4.7-RELEASE-32
     build:
       context: .
       dockerfile: Dockerfile
@@ -22,7 +22,7 @@ services:
       - '8089:8089'
 
   certapi:
-    image: pvarkiprojekti/takserver:certsapi-latest
+    image: pvarki/takserver:certsapi-latest
     build:
       target: production
       context: .
