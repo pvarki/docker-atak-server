@@ -10,7 +10,7 @@ FROM openjdk:11-jdk-bullseye as deps
 ENV \
   LC_ALL=C.UTF-8
 COPY --from=tak-files /tmp/takserver.zip /tmp/takserver.zip
-RUN apt update && apt-get install -y \
+RUN apt-get update && apt-get install -y \
       emacs-nox \
       net-tools \
       netcat \
