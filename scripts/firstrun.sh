@@ -1,12 +1,15 @@
 #!/usr/bin/env -S /bin/bash
-TR=/opt/tak
+TR=/mnt/tak
 CR=${TR}/certs
 CONFIG=${TR}/data/CoreConfig.xml
-if [ -f /opt/tak/firstrun.done ]
+if [ -f /mnt/tak/firstrun.done ]
 then
-  echo "First run already cone"
+  echo "First run already done"
 else
   set -e
+  
+  cp -r /opt/tak/. /mnt/tak/
+
   # Remove hardcoded country code
   sed -i.orig "s/COUNTRY=US/COUNTRY=\${COUNTRY}/g" ${CR}/cert-metadata.sh
   # Override some distribution scripts outright since doing it with sed is too painful
@@ -57,5 +60,5 @@ else
   echo "Init db"
   java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_USER} -password ${POSTGRES_PASSWORD} upgrade
 
-  date -u +"%Y%m%dT%H%M" >/opt/tak/firstrun.done
+  date -u +"%Y%m%dT%H%M" >/mnt/tak/firstrun.done
 fi

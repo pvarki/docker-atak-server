@@ -1,6 +1,6 @@
 #!/usr/bin/env -S /bin/bash
 set -e
-TR=/opt/tak
+TR=/mnt/tak
 CR=${TR}/data/certs
 ZIPTGT=${CR}/files/clientpkgs
 
