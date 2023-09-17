@@ -1,0 +1,72 @@
+version: '3.4'
+
+services:
+
+  takserver_initialization:
+    image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      - "takdb"
+    networks:
+      - taknet
+    volumes:
+      - 'takserver_data:/opt/tak/'
+    command: ./opt/scripts/firstrun.sh
+
+  takserver_messaging:
+    image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      - "takdb"
+    volumes:
+      - 'takserver_data:/opt/tak/'
+    networks:
+      - taknet
+    command: ./opt/scripts/start-messaging.sh
+
+  takserver_api:
+    image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      - "takserver_messaging"
+      - "takdb"
+    volumes:
+      - 'takserver_data:/opt/tak/'
+    networks:
+      - taknet
+    ports:
+      - '8443:8443'
+      - '8444:8444'
+      - '8446:8446'
+      - '8089:8089'
+    command: ./opt/scripts/start-api.sh
+
+  takdb:
+    image: postgis/postgis:15-3.3
+    networks:
+      - taknet
+    env_file:
+      - 'takserver.env'
+    volumes:
+      - 'takdb_data:/var/lib/postgresql/data'
+
+networks:
+  taknet:
+
+volumes:
+  takserver_data:
+    driver: local
+  takdb_data:
+    driver: local
