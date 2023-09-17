@@ -14,7 +14,7 @@ else
 
   # Seed initial certificate data if necessary
   if [[ ! -d "${TR}/data/certs" ]];then
-    mkdir "${TR}/data/certs"
+    mkdir -p "${TR}/data/certs"
   fi
   if [[ -z "$(ls -A "${TR}/data/certs")" ]];then
     echo Copying initial certificate configuration
