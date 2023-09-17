@@ -2,7 +2,7 @@
 TR=/opt/tak
 CR=${TR}/certs
 CONFIG=${TR}/data/CoreConfig.xml
-if [ -f /opt/firstrun.done ]
+if [ -f /opt/tak/firstrun.done ]
 then
   echo "First run already cone"
 else
@@ -57,5 +57,5 @@ else
   echo "Init db"
   java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_USER} -password ${POSTGRES_PASSWORD} upgrade
 
-  date -u +"%Y%m%dT%H%M" >/opt/firstrun.done
+  date -u +"%Y%m%dT%H%M" >/opt/tak/firstrun.done
 fi
