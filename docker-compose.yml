@@ -14,7 +14,7 @@ services:
     networks:
       - taknet
     volumes:
-      - 'takserver_data:/opt/tak/'
+      - 'takserver_data:/mnt/tak/'
     command: ./opt/scripts/firstrun.sh
 
   takserver_messaging:
@@ -27,7 +27,7 @@ services:
     depends_on:
       - "takdb"
     volumes:
-      - 'takserver_data:/opt/tak/'
+      - 'takserver_data:/mnt/tak/'
     networks:
       - taknet
     command: ./opt/scripts/start-messaging.sh
@@ -43,7 +43,7 @@ services:
       - "takserver_messaging"
       - "takdb"
     volumes:
-      - 'takserver_data:/opt/tak/'
+      - 'takserver_data:/mnt/tak/'
     networks:
       - taknet
     ports:
