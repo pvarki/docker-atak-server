@@ -1,0 +1,44 @@
+kind: containerapp
+location: westeurope
+name: takdb
+resourceGroup: xxxx
+type: Microsoft.App/containerApps
+properties:
+  managedEnvironmentId: xxxx
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      external: true
+      allowInsecure: true
+      exposedPort: 5432
+      targetPort: 5432
+      traffic:
+        - latestRevision: true
+          weight: 100
+      transport: tcp
+  template:
+    containers:
+      - name: takdb
+        image: postgis/postgis:15-3.3
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            volumeName: takdb
+        env:
+          - name: POSTGRES_DB
+            value: cot
+          - name: POSTGRES_USER
+            value: martiuser
+          - name: POSTGRES_ADDRESS
+            value: takdb
+          - name: POSTGRES_PASSWORD
+            value: Password12341
+    scale:
+      minReplicas: 1
+      maxReplicas: 1
+
+    volumes:
+      - name: takdb
+        storageType: EmptyDir
