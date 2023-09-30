@@ -14,7 +14,8 @@ services:
     networks:
       - taknet
     volumes:
-      - 'takserver_data:/mnt/tak/'
+      - 'takserver_logs:/opt/tak/data/logs'
+      - 'takserver_certs:/opt/tak/data/certs'
     command: ./opt/scripts/firstrun.sh
 
   takserver_messaging:
@@ -28,7 +29,8 @@ services:
       takserver_initialization:
           condition: service_completed_successfully
     volumes:
-      - 'takserver_data:/mnt/tak/'
+      - 'takserver_logs:/opt/tak/data/logs'
+      - 'takserver_certs:/opt/tak/data/certs'
     networks:
       - taknet
     ports:
@@ -37,7 +39,7 @@ services:
       - '8446:8446'
       - '8089:8089'
       - '8080:8080'
-    command: ./opt/scripts/start-messaging.sh
+    command: ./opt/scripts/start-tak.sh messaging
 
   takserver_api:
     image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
@@ -50,9 +52,26 @@ services:
       - "takserver_messaging"
       - "takdb"
     volumes:
-      - 'takserver_data:/mnt/tak/'
+      - 'takserver_logs:/opt/tak/data/logs'
+      - 'takserver_certs:/opt/tak/data/certs'
     network_mode: "service:takserver_messaging"
-    command: ./opt/scripts/start-api.sh
+    command: ./opt/scripts/start-tak.sh api
+
+  takserver_pluginmanager:
+    image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      - "takserver_api"
+      - "takdb"
+    volumes:
+      - 'takserver_logs:/opt/tak/data/logs'
+      - 'takserver_certs:/opt/tak/data/certs'
+    network_mode: "service:takserver_messaging"
+    command: ./opt/scripts/start-tak.sh pm
 
   takdb:
     image: postgis/postgis:15-3.3
@@ -67,7 +86,9 @@ networks:
   taknet:
 
 volumes:
-  takserver_data:
-    driver: local
   takdb_data:
+    driver: local
+  takserver_logs:
+    driver: local
+  takserver_certs:
     driver: local
