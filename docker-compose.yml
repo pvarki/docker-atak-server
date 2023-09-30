@@ -25,17 +25,18 @@ services:
     env_file:
       - 'takserver.env'
     depends_on:
-      - "takdb"
+      takserver_initialization:
+          condition: service_completed_successfully
     volumes:
       - 'takserver_data:/mnt/tak/'
     networks:
       - taknet
     ports:
-      - '18443:8443'
-      - '18444:8444'
-      - '18446:8446'
-      - '18089:8089'
-      - '18080:8080'
+      - '8443:8443'
+      - '8444:8444'
+      - '8446:8446'
+      - '8089:8089'
+      - '8080:8080'
     command: ./opt/scripts/start-messaging.sh
 
   takserver_api:
