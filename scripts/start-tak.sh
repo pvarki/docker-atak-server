@@ -17,7 +17,8 @@ if [[ ! -L "${TR}/certs"  ]];then
 fi
 
 # Symlink the log directory coming from Volumes
-if [[ ! -L "${TR}/certs"  ]];then
+if [[ ! -L "${TR}/logs"  ]];then
+  mv ${TR}/logs ${TR}/logs.orig
   ln -s "${TR}/data/logs/" "${TR}/logs"
 fi
 
