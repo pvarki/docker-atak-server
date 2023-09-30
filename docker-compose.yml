@@ -16,7 +16,7 @@ services:
     volumes:
       - 'takserver_logs:/opt/tak/data/logs'
       - 'takserver_certs:/opt/tak/data/certs'
-    command: ./opt/scripts/firstrun.sh
+    command: /opt/scripts/firstrun.sh
 
   takserver_messaging:
     image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"

@@ -1,0 +1,139 @@
+kind: containerapp
+location: westeurope
+name: takserver-toni-dev
+resourceGroup: xxxxx
+type: Microsoft.App/containerApps
+properties:
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      additionalPortMappings:
+      - exposedPort: 8089
+        external: true
+        targetPort: 8089
+      - exposedPort: 8444
+        external: true
+        targetPort: 8444
+      - exposedPort: 8446
+        external: true
+        targetPort: 8446
+      - exposedPort: 8080
+        external: true
+        targetPort: 8080
+      allowInsecure: false
+      external: true
+      exposedPort: 8443
+      targetPort: 8443
+      traffic:
+      - latestRevision: true
+        weight: 100
+      transport: tcp
+  managedEnvironmentId: xxxxx
+  template:
+    containers:
+      - name: takserver-messaging
+        image: pvarki/takserver:4.7-RELEASE-32-dev
+        resources:
+          cpu: 2
+          memory: 4Gi
+        command: [ '/opt/scripts/start-tak.sh','messaging' ]
+        env:
+          - name: ADMIN_CERT_PASS
+            value: Password12341
+          - name: TAKSERVER_CERT_PASS
+            value: Password12341
+          - name: CA_PASS
+            value: CAPassword123
+          - name: POSTGRES_DB
+            value: cot
+          - name: POSTGRES_USER
+            value: martiuser
+          - name: POSTGRES_ADDRESS
+            value: xxxx
+          - name: POSTGRES_PASSWORD
+            value: Password12341
+        volumeMounts:
+          - mountPath: /opt/tak/data/logs
+            volumeName: takserver-logs
+          - mountPath: /opt/tak/data/certs
+            volumeName: takserver-certs
+      - name: takserver-api
+        image: pvarki/takserver:4.7-RELEASE-32-dev
+        resources:
+          cpu: 2
+          memory: 4Gi
+        command: [ '/opt/scripts/start-tak.sh','api' ]
+        env:
+          - name: ADMIN_CERT_PASS
+            value: Password12341
+          - name: TAKSERVER_CERT_PASS
+            value: Password12341
+          - name: CA_PASS
+            value: CAPassword123
+          - name: POSTGRES_DB
+            value: cot
+          - name: POSTGRES_USER
+            value: martiuser
+          - name: POSTGRES_ADDRESS
+            value: xxxx
+          - name: POSTGRES_PASSWORD
+            value: Password12341
+          - name: ADMIN_CERT_NAME
+            value: admin
+        volumeMounts:
+          - mountPath: /opt/tak/data/logs
+            volumeName: takserver-logs
+          - mountPath: /opt/tak/data/certs
+            volumeName: takserver-certs
+    scale:
+      minReplicas: 1
+      maxReplicas: 1
+    initContainers:
+      - name: takserver-init
+        image: pvarki/takserver:4.7-RELEASE-32-dev
+        resources:
+          cpu: 0.25
+          memory: 0.5Gi
+        command: [ '/opt/scripts/firstrun.sh' ]
+        volumeMounts:
+          - mountPath: /opt/tak/data/certs
+            volumeName: takserver-certs
+        env:
+          - name: POSTGRES_DB
+            value: cot
+          - name: POSTGRES_USER
+            value: martiuser
+          - name: POSTGRES_ADDRESS
+            value: 
+          - name: POSTGRES_PASSWORD
+            value: Password12341
+          - name: ADMIN_CERT_NAME
+            value: admin
+          - name: ADMIN_CERT_PASS
+            value: Password12341
+          - name: TAKSERVER_CERT_PASS
+            value: Password12341
+          - name: COUNTRY
+            value: fi
+          - name: CA_NAME
+            value: Test-CA
+          - name: CA_PASS
+            value: CAPassword123
+          - name: STATE
+            value: Uusimaa
+          - name: CITY
+            value: Helsinki
+          - name: ORGANIZATION
+            value: Test
+          - name: ORGANIZATIONAL_UNIT
+            value: Test
+            
+    volumes:
+      - name: takserver-logs
+        storageType: EmptyDir
+#        storageType: AzureFile
+#        storageName: takserver-logs
+      - name: takserver-certs
+        storageType: EmptyDir
+#        storageType: AzureFile
+#        storageName: takserver-certs
