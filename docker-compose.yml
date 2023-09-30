@@ -30,6 +30,12 @@ services:
       - 'takserver_data:/mnt/tak/'
     networks:
       - taknet
+    ports:
+      - '18443:8443'
+      - '18444:8444'
+      - '18446:8446'
+      - '18089:8089'
+      - '18080:8080'
     command: ./opt/scripts/start-messaging.sh
 
   takserver_api:
@@ -44,13 +50,7 @@ services:
       - "takdb"
     volumes:
       - 'takserver_data:/mnt/tak/'
-    networks:
-      - taknet
-    ports:
-      - '8443:8443'
-      - '8444:8444'
-      - '8446:8446'
-      - '8089:8089'
+    network_mode: "service:takserver_messaging"
     command: ./opt/scripts/start-api.sh
 
   takdb:
