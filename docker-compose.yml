@@ -1,6 +1,22 @@
 version: '3.4'
 
 services:
+  tak_rmapi:
+    image: "pvarki/python-tak-rmapi:latest"
+    build:
+      context: ./python-tak-rmapi
+      dockerfile: Dockerfile
+      target: production
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      - "takdb"
+    networks:
+      - taknet
+    volumes:
+      - 'takserver_certs:/opt/tak/data/certs'
+    ports:
+      - "8888:8000"
 
   takserver_initialization:
     image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
@@ -11,6 +27,7 @@ services:
       - 'takserver.env'
     depends_on:
       - "takdb"
+      - "tak_rmapi"
     networks:
       - taknet
     volumes:
