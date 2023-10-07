@@ -3,10 +3,10 @@ version: '3.4'
 services:
   tak_rmapi:
     image: "pvarki/python-tak-rmapi:latest"
-    build:
-      context: ./python-tak-rmapi
-      dockerfile: Dockerfile
-      target: production
+    # build:
+    #   context: ./python-tak-rmapi
+    #   dockerfile: Dockerfile
+    #   target: production
     env_file:
       - 'takserver.env'
     depends_on:

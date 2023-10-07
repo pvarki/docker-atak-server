@@ -1,0 +1,13 @@
+{
+    "rasenmaher_host":"http://tak_rmapi:8000",
+    "rasenmaher_healthcheck_url":"http://tak_rmapi:8000/api/v1/healthcheck",
+    "tak_server_cert_filename":"tak-host.pem",
+    "tak_server_key_filename":"tak-host-key.pem",
+    "tak_server_key_passphrase":"Salakala123Porakoira123",
+    "tak_server_hostname":"tak.test.com",
+    "tak_admin_cert_filename":"kissakoira123.pem",
+    "tak_admin_key_filename":"kissakoira123-key.pem",
+    "tak_admin_key_passphrase":"Salakala123Porakoira123",
+    "rm_cert_chain_filename":"kissakoira123_bundle.pem",
+    "rm_startup_certs_local_folder":"/opt/tak/data/certs"
+}

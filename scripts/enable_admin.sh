@@ -5,9 +5,9 @@ CONFIG=${TR}/data/CoreConfig.xml
 
 # Wait for server start
 echo "enable_admin: Waiting for db"
-WAITFORIT_TIMEOUT=30 /usr/bin/wait-for-it.sh ${POSTGRES_ADDRESS}:5432 -- true
+WAITFORIT_TIMEOUT=60 /usr/bin/wait-for-it.sh ${POSTGRES_ADDRESS}:5432 -- true
 echo "enable_admin: Waiting for TAK server"
-WAITFORIT_TIMEOUT=60 /usr/bin/wait-for-it.sh localhost:8089 -- true
+WAITFORIT_TIMEOUT=120 /usr/bin/wait-for-it.sh localhost:8089 -- true
 
 echo "enable_admin: Making sure ${ADMIN_CERT_NAME} user is in place"
 cd ${TR}
