@@ -1,0 +1,234 @@
+version: '3.4'
+### REMOVE WHEN kw_product_init MTLS IS ABLE TO DO ADMIN STUFF
+## Until then keep as purkka
+x-kc_dbconfig_env: &kcdbconfig_env
+  KEYCLOAK_DATABASE_NAME: &kcdbname keycloak
+  KEYCLOAK_DATABASE_HOST: postgres
+  KEYCLOAK_DATABASE_USER: &kcdbuser keycloak
+  # FIXME: take from env (which should be set to random)
+  KEYCLOAK_DATABASE_PASSWORD: &kcdbpass keycloakpwd # pragma: allowlist secret
+
+x-raesenmaeher_dbconfig_env: &rmdbconfig_env
+  RM_DATABASE_NAME: &rmdbname raesenmaeher
+  RM_DATABASE_HOST: postgres
+  RM_DATABASE_USER: &rmdbuser raesenmaeher
+  # FIXME: take from env (which should be set to random)
+  RM_DATABASE_PASSWORD: &rmdbpass raesenmaeherpwd # pragma: allowlist secret
+
+
+x-postgres_env: &postgres_env
+  KEYCLOAK_PASSWORD: *kcdbpass # pragma: allowlist secret
+  POSTGRES_PASSWORD: "FIXME: change to long random" # pragma: allowlist secret
+  RAESENMAEHER_PASSWORD: *rmdbpass # pragma: allowlist secret
+
+
+x-ldap_admin_env: &ldap_admin_env
+  # FIXME: take from env (which should be set to random)
+  LDAP_ADMIN_PASSWORD: &ldapadminpass ldapadminpwd # pragma: allowlist secret
+  LDAP_ADMIN_USERNAME: &ldapadminuser admin
+
+x-keycloak_users_env: &keycloak_users_env
+  KEYCLOAK_CREATE_ADMIN_USER: "true"
+  KEYCLOAK_ADMIN_USER: &lcadminuser admin
+  KEYCLOAK_MANAGEMENT_USER: damager
+  # FIXME: take from env (which should be set to random)
+  KEYCLOAK_ADMIN_PASSWORD: &kcadminpass kcadminpw # pragma: allowlist secret
+  KEYCLOAK_MANAGEMENT_PASSWORD: kcmgrpw # pragma: allowlist secret
+
+x-keycloak_profile_env: &keycloak_profile_env
+  # These can be expanded in keycloak-config/profile.json
+  KCP_REALM: "RASENMAEHER"
+  KCP_MAIN_ID: "4f88fe8c-ffa5-4ae4-97c9-3831a500d502"  # FIXME: get from env or something
+
+x-keycloakinit_users_env: &keycloakinit_users_env
+  KEYCLOAK_USER: *lcadminuser # pragma: allowlist secret
+  KEYCLOAK_PASSWORD: *kcadminpass # pragma: allowlist secret
+
+x-domains_env:
+  SERVER_DOMAIN: &serverdomain ${SERVER_DOMAIN:-localmaeher.pvarki.fi}
+  MTLS_DOMAIN: &mtlsdomein "mtls.${SERVER_DOMAIN:-localmaeher.pvarki.fi}"
+  API_HTTPS_PORT: &apiport ${NGINX_HTTPS_PORT:-4439}
+  PRODUCT_HTTPS_PORT: &productport ${NGINX_HTTPS_PRODUCT_PORT:-4625}
+  PRODUCT_DOMAIN: &productdomain "fake.${SERVER_DOMAIN:-localmaeher.pvarki.fi}"
+
+x-cfssl_env: &cfssl_env
+  INT_SHARED_CERT_FOLDER: /ca_public
+  CFSSL_BIND_ADDRESS: ${CFSSL_BIND_ADDRESS:-0.0.0.0}
+  CFSSL_BIND_PORT: &cfsslport ${CFSSL_BIND_PORT:-8888}
+  CFSSL_OCSP_BIND_PORT: &oscpport ${CFSSL_OCSP_BIND_PORT:-8889}
+  CFSSL_CA_NAME: ${CFSSL_CA_NAME:-LOCALMAEHER}
+  OCSP_HOST: *serverdomain
+  OCSP_PORT: *apiport
+  CFSSL_PERSISTENT_FOLDER: /data/persistent
+# END REMOVE
+
+services:
+  tak_rmapi:
+    image: "pvarki/python-tak-rmapi:latest"
+    # build:
+    #   context: ./python-tak-rmapi
+    #   dockerfile: Dockerfile
+    #   target: production
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      takdb:
+        condition: service_started
+      rmapi-purkka:
+        condition: service_completed_successfully
+    networks:
+      - taknet
+      - canet
+    volumes:
+      - 'takserver_certs:/opt/tak/data/certs'
+      - 'ca_public:/ca_public'
+      - 'kraftwerk_shared_tak:/pvarkishares/tak'
+      - 'rmtakapi_data:/data/persistent'
+    ports:
+      - "8888:8000"
+  
+  ### REMOVE WHEN kw_product_init MTLS IS ABLE TO DO ADMIN STUFF
+  ## Until then keep as purkka
+  rmapi-purkka:
+    image: pvarki/rmapi:latest
+    entrypoint: /bin/bash
+    command: ["-c", "rasenmaeher_api addcode > /pvarkishares/tak/tmp_jwt_exchange_code.code"]
+    environment:
+      <<: [*rmdbconfig_env]
+      JWT_PUBKEY_PATH: "/data/persistent/public"
+      JWT_PRIVKEY_PATH: "/data/persistent/private/rm_jwtsign.key"
+      JWT_PRIVKEY_PASS: "localmaeherjwtkeypass"  # pragma: allowlist secret
+      RM_CFSSL_HOST: "http://cfssl"
+      RM_CFSSL_PORT: *cfsslport
+    networks:
+      - apinet
+      - kcnet
+      - canet
+      - intranet
+      - dbnet
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - kraftwerk_shared_tak:/pvarkishares/tak
+    depends_on:
+      rmapi:
+        condition: service_healthy
+  # END REMOVE
+
+  takserver_initialization:
+    image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      - "takdb"
+      - "tak_rmapi"
+    networks:
+      - taknet
+    volumes:
+      - 'takserver_logs:/opt/tak/data/logs'
+      - 'takserver_certs:/opt/tak/data/certs'
+    command: /opt/scripts/firstrun.sh
+
+  takserver_messaging:
+    image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      takserver_initialization:
+          condition: service_completed_successfully
+    volumes:
+      - 'takserver_logs:/opt/tak/data/logs'
+      - 'takserver_certs:/opt/tak/data/certs'
+    networks:
+      - taknet
+    ports:
+      - '8443:8443'
+      - '8444:8444'
+      - '8446:8446'
+      - '8089:8089'
+      - '8080:8080'
+    command: ./opt/scripts/start-tak.sh messaging
+
+  # This does nothing for now. Maybe removed later on. 
+  tak_users_loop:
+    image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: on-failure
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      takserver_initialization:
+          condition: service_completed_successfully
+    volumes:
+      - 'takserver_logs:/opt/tak/data/logs'
+      - 'takserver_certs:/opt/tak/data/certs'
+    networks:
+      - taknet
+    command: ./opt/scripts/start-tak.sh users_loop
+
+  takserver_api:
+    image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      - "takserver_messaging"
+      - "takdb"
+    volumes:
+      - 'takserver_logs:/opt/tak/data/logs'
+      - 'takserver_certs:/opt/tak/data/certs'
+    network_mode: "service:takserver_messaging"
+    command: ./opt/scripts/start-tak.sh api
+
+  takserver_pluginmanager:
+    image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      - "takserver_api"
+      - "takdb"
+    volumes:
+      - 'takserver_logs:/opt/tak/data/logs'
+      - 'takserver_certs:/opt/tak/data/certs'
+    network_mode: "service:takserver_messaging"
+    command: ./opt/scripts/start-tak.sh pm
+
+  takdb:
+    image: postgis/postgis:15-3.3
+    networks:
+      - taknet
+    env_file:
+      - 'takserver.env'
+    volumes:
+      - 'takdb_data:/var/lib/postgresql/data'
+
+networks:
+  taknet:
+
+volumes:
+  takdb_data:
+    driver: local
+  takserver_logs:
+    driver: local
+  takserver_certs:
+    driver: local
+  ca_public:
+    driver: local
+  kraftwerk_shared:
+    driver: local
+  rmtakapi_data:
+    driver: local
+  

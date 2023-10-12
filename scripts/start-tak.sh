@@ -4,7 +4,8 @@ set -e
 TR=/opt/tak
 CONFIG=${TR}/data/CoreConfig.xml
 
-RM_API_MANIFEST_FILE="${RM_API_MANIFEST_FILE:=/opt/tak/data/certs/rm_api_manifest.json}"
+SETUP_CERTS_USING_MANIFEST="${SETUP_CERTS_USING_MANIFEST:-no}"
+TAK_ADMIN_CERT_FILENAME="${TAK_ADMIN_CERT_FILENAME:-tak-superjyra666.pem}"
 
 # (re-)Create config
 echo "(Re-)Creating config"
@@ -32,19 +33,10 @@ cd ${TR}
 
 # Start the right process
 if [ $1 = "messaging" ]; then
-    
-    if [[ -f "${RM_API_MANIFEST_FILE}" ]];then
-      echo "Manifest found in ${RM_API_MANIFEST_FILE}, attempting to initialize admin using manifest"
+    if [[ "${SETUP_CERTS_USING_MANIFEST}" == "yes" ]];then
       # If the cert file is not found in the files path, assume that the admin needs to be initialized
-      if [ ! -f "/opt/tak/certs/files/${TAK_ADMIN_CERT_FILENAME}" ];then
-        TAK_ADMIN_CERT_FILENAME=$(cat "${RM_API_MANIFEST_FILE}" | jq -r .tak_admin_cert_filename)
-        cp "/opt/tak/certs/${TAK_ADMIN_CERT_FILENAME}" "/opt/tak/certs/files/${TAK_ADMIN_CERT_FILENAME}"
-        ADMIN_CERT_NAME="$(echo $TAK_ADMIN_CERT_FILENAME |sed 's/.pem//g')" /opt/scripts/enable_admin.sh &
-      else
-        echo "Assuming that the admin initialization has already been done as /opt/tak/certs/files/${TAK_ADMIN_CERT_FILENAME} is found"
-        echo "Skipping admin init..."
-      fi
-      
+      # TODO check that if the user has already been added
+      ADMIN_CERT_NAME="$(echo $TAK_ADMIN_CERT_FILENAME |sed 's/.pem//g')" /opt/scripts/enable_admin.sh &
     fi
     echo "Starting TAK Messaging"
     java -jar -Xmx${MESSAGING_MAX_HEAP}m -Dspring.profiles.active=messaging takserver.war
@@ -54,6 +46,17 @@ elif [ $1 = "api" ]; then
 elif [ $1 = "pm" ]; then
     echo "Starting TAK Plugin Manager"
     java -jar -Xmx${PLUGIN_MANAGER_MAX_HEAP}m takserver-pm.jar
+elif [ $1 = "users_loop" ]; then
+    echo "Starting users loop purkka"
+    while true
+    do
+      # TODO MAYBE IF NOT THEN MAYBE YES 
+      # Add logic for adding/removing users in case we cannot add the users through Tak REST Api 
+      # We need to be able to add users like the script "enable_admin.sh"
+      #
+      sleep 1
+    done
+    
 else
   echo "Please provide right TAK component: messaging, api or pm"
 fi
