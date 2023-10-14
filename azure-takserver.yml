@@ -113,6 +113,34 @@ properties:
             volumeName: takserver-logs
           - mountPath: /opt/tak/data/certs
             volumeName: takserver-certs
+      - name: takserver-retention
+        image: pvarki/takserver:4.10-RELEASE-12-dev
+        resources:
+          cpu: 1
+          memory: 2Gi
+        command: [ '/opt/scripts/start-tak.sh','retention' ]
+        env:
+          - name: ADMIN_CERT_PASS
+            value: Password12341
+          - name: TAKSERVER_CERT_PASS
+            value: Password12341
+          - name: CA_PASS
+            value: CAPassword123
+          - name: POSTGRES_DB
+            value: cot
+          - name: POSTGRES_USER
+            value: martiuser
+          - name: POSTGRES_ADDRESS
+            value: <REMOVED>
+          - name: POSTGRES_PASSWORD
+            value: Password12341
+          - name: ADMIN_CERT_NAME
+            value: admin
+        volumeMounts:
+          - mountPath: /opt/tak/data/logs
+            volumeName: takserver-logs
+          - mountPath: /opt/tak/data/certs
+            volumeName: takserver-certs
     scale:
       minReplicas: 1
       maxReplicas: 1
@@ -155,7 +183,6 @@ properties:
             value: Test
           - name: ORGANIZATIONAL_UNIT
             value: Test
-
             
     volumes:
       - name: takserver-logs
