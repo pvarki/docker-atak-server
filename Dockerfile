@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y \
       pwgen \
       zip \
       openssh-client \
+      jq \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /usr/bin/wait-for-it.sh \
