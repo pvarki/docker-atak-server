@@ -32,13 +32,11 @@ x-cfssl_env: &cfssl_env
 
 services:
   tak_rmapi:
-    image: "pvarki/python-tak-rmapi:latest"
-    # build:
-    #   context: ./python-tak-rmapi
-    #   dockerfile: Dockerfile
-    #   target: production
-    env_file:
-      - 'takserver.env'
+    image: "pvarki/takrmintapi:latest"
+    build:
+      context: ./rmapi
+      dockerfile: Dockerfile
+      target: production
     depends_on:
       takdb:
         condition: service_started
