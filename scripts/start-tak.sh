@@ -35,9 +35,12 @@ if [ $1 = "messaging" ]; then
 elif [ $1 = "api" ]; then
     echo "Starting TAK API"
     java -jar -Xmx${API_MAX_HEAP}m -Dspring.profiles.active=api -Dkeystore.pkcs12.legacy takserver.war
+elif [ $1 = "retention" ]; then
+    echo "Starting TAK API"
+    java -jar -Xmx${RETENTION_MAX_HEAP}m takserver-retention.jar
 elif [ $1 = "pm" ]; then
     echo "Starting TAK Plugin Manager"
-    java -jar -Xmx${PLUGIN_MANAGER_MAX_HEAP}m takserver-pm.jar
+    java -jar -Xmx${PLUGIN_MANAGER_MAX_HEAP}m -Dloader.path=WEB-INF/lib-provided,WEB-INF/lib,WEB-INF/classes,file:lib/ takserver-pm.jar
 else
   echo "Please provide right TAK component: messaging, api or pm"
 fi
