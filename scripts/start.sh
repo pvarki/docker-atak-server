@@ -42,6 +42,8 @@ java -jar -Xmx${MESSAGING_MAX_HEAP}m -Dspring.profiles.active=messaging takserve
 MESSAGING_PID=$!
 java -jar -Xmx${API_MAX_HEAP}m -Dspring.profiles.active=api -Dkeystore.pkcs12.legacy takserver.war &
 API_PID=$!
+java -jar -Xmx${RETENTION_MAX_HEAP}m takserver-retention.jar &
+RET_PID=$!
 java -jar -Xmx${PLUGIN_MANAGER_MAX_HEAP}m takserver-pm.jar &
 PM_PID=$!
 

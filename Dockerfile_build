@@ -40,6 +40,12 @@ RUN mkdir /jars \
     && find . -type f -name '*-docker-*.zip' -exec mv {} /zips/ \; \
     && ls -lah /jars /zips
 
+FROM alpine as takgov_files
+ARG TAK_VERSION="4.10"
+ARG TAK_RELEASE="12"
+COPY takgov_assets/*${TAK_VERSION}-RELEASE-${TAK_RELEASE}.zip /zips/
+COPY takgov_assets/*${TAK_VERSION}-sdk.zip /zips/
+CMD ["cp", "-r", "/zips/",  "/output/"]
 
 FROM alpine as files
 COPY --from=output /jars /jars

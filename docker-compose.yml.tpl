@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   takserver:
-    image: pvarki/takserver:4.7-RELEASE-32
+    image: pvarki/takserver:4.10-RELEASE-12
     build:
       context: .
       dockerfile: Dockerfile

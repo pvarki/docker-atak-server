@@ -5,3 +5,4 @@
 outputs
 takserver.env
 takdata
+takgov_assets/*.zip
