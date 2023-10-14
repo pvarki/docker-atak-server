@@ -24,5 +24,6 @@ jobs:
         id: pre_commit
         run: |
           export SKIP=no-commit-to-branch
+          cp takserver.env.example takserver.env
           pre-commit run --all-files
 # TODO: Check that compositions meant for purely local development build
