@@ -1,0 +1,3 @@
+[submodule "rmapi"]
+	path = rmapi
+	url = git@github.com:pvarki/python-tak-rmapi.git

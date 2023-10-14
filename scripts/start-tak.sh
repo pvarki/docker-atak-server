@@ -50,13 +50,13 @@ elif [ $1 = "users_loop" ]; then
     echo "Starting users loop purkka"
     while true
     do
-      # TODO MAYBE IF NOT THEN MAYBE YES 
-      # Add logic for adding/removing users in case we cannot add the users through Tak REST Api 
+      # TODO MAYBE IF NOT THEN MAYBE YES
+      # Add logic for adding/removing users in case we cannot add the users through Tak REST Api
       # We need to be able to add users like the script "enable_admin.sh"
       #
       sleep 1
     done
-    
+
 else
   echo "Please provide right TAK component: messaging, api or pm"
 fi

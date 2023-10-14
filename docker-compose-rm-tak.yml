@@ -86,7 +86,7 @@ services:
       - 'rmtakapi_data:/data/persistent'
     ports:
       - "8888:8000"
-  
+
   ### REMOVE WHEN kw_product_init MTLS IS ABLE TO DO ADMIN STUFF
   ## Until then keep as purkka
   rmapi-purkka:
@@ -155,7 +155,7 @@ services:
       - '8080:8080'
     command: ./opt/scripts/start-tak.sh messaging
 
-  # This does nothing for now. Maybe removed later on. 
+  # This does nothing for now. Maybe removed later on.
   tak_users_loop:
     image: "pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA}"
     build:
@@ -231,4 +231,3 @@ volumes:
     driver: local
   rmtakapi_data:
     driver: local
-  

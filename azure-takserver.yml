@@ -104,7 +104,7 @@ properties:
           - name: POSTGRES_USER
             value: martiuser
           - name: POSTGRES_ADDRESS
-            value: 
+            value:
           - name: POSTGRES_PASSWORD
             value: Password12341
           - name: ADMIN_CERT_NAME
@@ -127,7 +127,7 @@ properties:
             value: Test
           - name: ORGANIZATIONAL_UNIT
             value: Test
-            
+
     volumes:
       - name: takserver-logs
         storageType: EmptyDir

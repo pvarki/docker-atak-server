@@ -1,6 +1,6 @@
-===================
+================================
 Run TAK Java server in container
-===================
+================================
 
 tldr::
 
@@ -21,6 +21,27 @@ or use docker compose.local.yml without gomplate for local dev (rebuilding conta
 Note, for things that live in the volumes (like TAK certs) you must nuke the volumes to see changes::
 
     docker compose -f docker-compose.local.yml -p tak down -v ; docker compose -f docker-compose.local.yml -p tak rm -vf
+
+Git submodules
+--------------
+
+When cloning for the first time use::
+
+    git clone --recurse-submodules -j8 git@github.com:pvarki/docker-atak-server.git
+
+When updating or checking out branches use::
+
+    git submodule update
+
+And if you forgot to --recurse-submodules run git submodule init to fix things.
+
+The submodules are repos in their own right, if you plan to make changes into them change
+to the directory and create new branch, commit and push changes as usual under that directory.
+
+Directories that are submodules
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  - rmapi https://github.com/pvarki/python-tak-rmapi
 
 
 

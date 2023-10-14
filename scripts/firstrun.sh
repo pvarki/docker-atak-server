@@ -17,7 +17,7 @@ RM_CERT_ROOT_FILENAME="${RM_CERT_ROOT_FILENAME:-tak-server-root.pem}"
 
 if [[ "${SETUP_CERTS_USING_MANIFEST}" == "yes" ]];then
    echo "Running certificate setup using RM certs..."
-   # Checks to figure out if the tak has been initialized already. 
+   # Checks to figure out if the tak has been initialized already.
   if [[ -f /opt/tak/data/certs/files/truststore-root.jks ]]; then
     echo "truststore-root.jks found. Assuming tak has been initialized already."
     exit 0
@@ -27,11 +27,11 @@ if [[ "${SETUP_CERTS_USING_MANIFEST}" == "yes" ]];then
   MAX_ATTEMPTS=240
   HEALTHCHECK_OK="no"
   set +e
-  for i in $(seq 1 $MAX_ATTEMPTS); 
-  do 
+  for i in $(seq 1 $MAX_ATTEMPTS);
+  do
     RESPONSE_CODE=$(curl -XGET -s -o /dev/null -I -w "%{http_code}" "$RM_LOCAL_API_HEALTCHECK_URL")
 
-    if [[ "$RESPONSE_CODE" == "200" ]]; then 
+    if [[ "$RESPONSE_CODE" == "200" ]]; then
       echo "RM healthcheck success. Moving on..."
       HEALTHCHECK_OK="ok"
       break
@@ -70,20 +70,20 @@ if [[ "${SETUP_CERTS_USING_MANIFEST}" == "yes" ]];then
     ln -s "${TR}/data/logs/" "${TR}/logs"
   fi
 
-  mkdir -p /opt/tak/data/certs/files  
+  mkdir -p /opt/tak/data/certs/files
   pushd ${RM_STARTUP_CERTS_LOCAL_FOLDER} >> /dev/null
 
-  
+
   # Create takserver.p12 using certificates from RM
   openssl pkcs12 -export -out takserver.p12 -inkey "${TAK_SERVER_KEY_FILENAME}" -in "${TAK_SERVER_CERT_FILENAME}" -name "${TAK_SERVER_HOSTNAME}" -passin pass:${TAK_SERVER_KEY_PASSPHRASE} -passout pass:${TAKSERVER_CERT_PASS}
-  
+
   # Print some debug info out of takserver.p12 if needed
   # openssl pkcs12 -info -in takserver.p12 -passin pass:${TAKSERVER_CERT_PASS}
 
   # Create the Java keystore and import our PKCS12 for our TAK Server. I guess this will be the "server certificate" used by java process..
   keytool -importkeystore -srcstoretype PKCS12 -destkeystore takserver.jks -srckeystore takserver.p12 -alias "${TAK_SERVER_HOSTNAME}" -srcstorepass "${TAKSERVER_CERT_PASS}" -deststorepass "${TAKSERVER_CERT_PASS}" -destkeypass "${TAKSERVER_CERT_PASS}"
 
-  # Crate trust store, all the trusted CA/root certificates are dumped here. Keytool should accept certs either one by one or as a chain. -alias needs to be unique for all imports 
+  # Crate trust store, all the trusted CA/root certificates are dumped here. Keytool should accept certs either one by one or as a chain. -alias needs to be unique for all imports
   ALIAS=$(openssl x509 -noout -subject -in "${RM_CERT_CHAIN_FILENAME}" |md5sum | cut -d" " -f1)
   keytool -noprompt -import -trustcacerts -file "${RM_CERT_CHAIN_FILENAME}" -alias $ALIAS -keystore takserver-truststore.jks -storepass ${TAKSERVER_CERT_PASS}
 
@@ -100,19 +100,19 @@ if [[ "${SETUP_CERTS_USING_MANIFEST}" == "yes" ]];then
   cp -v /opt/tak/data/certs/files/takserver-truststore.jks /opt/tak/data/certs/files/truststore-root.jks
 
   popd >> /dev/null
-  
+
   chmod -R 777 ${TR}/data/
 
   echo "Wait for postgres"
   WAITFORIT_TIMEOUT=60 /usr/bin/wait-for-it.sh ${POSTGRES_ADDRESS}:5432 -- true
   echo "Init db"
   java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_USER} -password ${POSTGRES_PASSWORD} upgrade
-  
+
   exit 0
 fi
 
 #
-# After this line is the "stand alone" part. This shouldn't need the RM integrations etc... 
+# After this line is the "stand alone" part. This shouldn't need the RM integrations etc...
 #
 
 # Remove hardcoded country code
