@@ -1,13 +1,6 @@
 version: '3.4'
 ### REMOVE WHEN kw_product_init MTLS IS ABLE TO DO ADMIN STUFF
 ## Until then keep as purkka
-x-kc_dbconfig_env: &kcdbconfig_env
-  KEYCLOAK_DATABASE_NAME: &kcdbname keycloak
-  KEYCLOAK_DATABASE_HOST: postgres
-  KEYCLOAK_DATABASE_USER: &kcdbuser keycloak
-  # FIXME: take from env (which should be set to random)
-  KEYCLOAK_DATABASE_PASSWORD: &kcdbpass keycloakpwd # pragma: allowlist secret
-
 x-raesenmaeher_dbconfig_env: &rmdbconfig_env
   RM_DATABASE_NAME: &rmdbname raesenmaeher
   RM_DATABASE_HOST: postgres
@@ -15,34 +8,9 @@ x-raesenmaeher_dbconfig_env: &rmdbconfig_env
   # FIXME: take from env (which should be set to random)
   RM_DATABASE_PASSWORD: &rmdbpass raesenmaeherpwd # pragma: allowlist secret
 
-
 x-postgres_env: &postgres_env
-  KEYCLOAK_PASSWORD: *kcdbpass # pragma: allowlist secret
   POSTGRES_PASSWORD: "FIXME: change to long random" # pragma: allowlist secret
   RAESENMAEHER_PASSWORD: *rmdbpass # pragma: allowlist secret
-
-
-x-ldap_admin_env: &ldap_admin_env
-  # FIXME: take from env (which should be set to random)
-  LDAP_ADMIN_PASSWORD: &ldapadminpass ldapadminpwd # pragma: allowlist secret
-  LDAP_ADMIN_USERNAME: &ldapadminuser admin
-
-x-keycloak_users_env: &keycloak_users_env
-  KEYCLOAK_CREATE_ADMIN_USER: "true"
-  KEYCLOAK_ADMIN_USER: &lcadminuser admin
-  KEYCLOAK_MANAGEMENT_USER: damager
-  # FIXME: take from env (which should be set to random)
-  KEYCLOAK_ADMIN_PASSWORD: &kcadminpass kcadminpw # pragma: allowlist secret
-  KEYCLOAK_MANAGEMENT_PASSWORD: kcmgrpw # pragma: allowlist secret
-
-x-keycloak_profile_env: &keycloak_profile_env
-  # These can be expanded in keycloak-config/profile.json
-  KCP_REALM: "RASENMAEHER"
-  KCP_MAIN_ID: "4f88fe8c-ffa5-4ae4-97c9-3831a500d502"  # FIXME: get from env or something
-
-x-keycloakinit_users_env: &keycloakinit_users_env
-  KEYCLOAK_USER: *lcadminuser # pragma: allowlist secret
-  KEYCLOAK_PASSWORD: *kcadminpass # pragma: allowlist secret
 
 x-domains_env:
   SERVER_DOMAIN: &serverdomain ${SERVER_DOMAIN:-localmaeher.pvarki.fi}
@@ -78,7 +46,6 @@ services:
         condition: service_completed_successfully
     networks:
       - taknet
-      - canet
     volumes:
       - 'takserver_certs:/opt/tak/data/certs'
       - 'ca_public:/ca_public'
@@ -101,18 +68,11 @@ services:
       RM_CFSSL_HOST: "http://cfssl"
       RM_CFSSL_PORT: *cfsslport
     networks:
-      - apinet
-      - kcnet
-      - canet
-      - intranet
-      - dbnet
+      - taknet
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - kraftwerk_shared_tak:/pvarkishares/tak
-    depends_on:
-      rmapi:
-        condition: service_healthy
   # END REMOVE
 
   takserver_initialization:
@@ -230,4 +190,6 @@ volumes:
   kraftwerk_shared:
     driver: local
   rmtakapi_data:
+    driver: local
+  kraftwerk_shared_tak:
     driver: local

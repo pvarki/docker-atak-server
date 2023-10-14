@@ -21,6 +21,12 @@ repos:
     -   id: pretty-format-json
         args:
         - --autofix
+-   repo: https://github.com/IamTheFij/docker-pre-commit.git
+    rev: v2.1.1
+    hooks:
+    -   id: docker-compose-check
+        files: "docker-compose.*.yml"
+        exclude: ".*.tpl"
 -   repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
