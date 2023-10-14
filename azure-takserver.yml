@@ -183,7 +183,7 @@ properties:
             value: Test
           - name: ORGANIZATIONAL_UNIT
             value: Test
-            
+
     volumes:
       - name: takserver-logs
         storageType: EmptyDir
