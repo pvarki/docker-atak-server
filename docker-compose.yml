@@ -1,12 +1,15 @@
 version: '3.4'
 
+x-takbuilds: &takbuildinfo
+  image: &takimg "pvarki/takserver:${TAK_RELEASE:-4.10-RELEASE-12}${DOCKER_TAG_EXTRA:-}"
+  build:
+    context: .
+    dockerfile: Dockerfile
+
 services:
 
   takserver_initialization:
-    image: "pvarki/takserver:4.10-RELEASE-12${DOCKER_TAG_EXTRA}"
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *takbuildinfo
     env_file:
       - 'takserver.env'
     depends_on:
@@ -19,10 +22,7 @@ services:
     command: /opt/scripts/firstrun.sh
 
   takserver_messaging:
-    image: "pvarki/takserver:4.10-RELEASE-12${DOCKER_TAG_EXTRA}"
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *takbuildinfo
     env_file:
       - 'takserver.env'
     depends_on:
@@ -42,10 +42,7 @@ services:
     command: ./opt/scripts/start-tak.sh messaging
 
   takserver_api:
-    image: "pvarki/takserver:4.10-RELEASE-12${DOCKER_TAG_EXTRA}"
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *takbuildinfo
     env_file:
       - 'takserver.env'
     depends_on:
@@ -58,10 +55,7 @@ services:
     command: ./opt/scripts/start-tak.sh api
 
   takserver_retention:
-    image: "pvarki/takserver:4.10-RELEASE-12${DOCKER_TAG_EXTRA}"
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *takbuildinfo
     env_file:
       - 'takserver.env'
     depends_on:
@@ -74,10 +68,7 @@ services:
     command: ./opt/scripts/start-tak.sh retention
 
   takserver_pluginmanager:
-    image: "pvarki/takserver:4.10-RELEASE-12${DOCKER_TAG_EXTRA}"
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *takbuildinfo
     env_file:
       - 'takserver.env'
     depends_on:
