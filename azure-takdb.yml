@@ -1,15 +1,15 @@
 kind: containerapp
 location: westeurope
 name: takdb
-resourceGroup: xxxx
+resourceGroup: <REMOVED>
 type: Microsoft.App/containerApps
 properties:
-  managedEnvironmentId: xxxx
+  managedEnvironmentId: <REMOVED>
   configuration:
     activeRevisionsMode: Single
     ingress:
       external: true
-      allowInsecure: true
+      allowInsecure: false
       exposedPort: 5432
       targetPort: 5432
       traffic:

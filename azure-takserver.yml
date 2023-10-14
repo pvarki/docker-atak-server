@@ -1,41 +1,41 @@
 kind: containerapp
 location: westeurope
-name: takserver-toni-dev
-resourceGroup: xxxxx
+name: takserver
+resourceGroup: <REMOVED>
 type: Microsoft.App/containerApps
 properties:
   configuration:
     activeRevisionsMode: Single
     ingress:
       additionalPortMappings:
-      - exposedPort: 8089
-        external: true
-        targetPort: 8089
-      - exposedPort: 8444
-        external: true
-        targetPort: 8444
-      - exposedPort: 8446
-        external: true
-        targetPort: 8446
-      - exposedPort: 8080
-        external: true
-        targetPort: 8080
+        - external: true
+          exposedPort: 8089
+          targetPort: 8089
+        - external: true
+          exposedPort: 8444
+          targetPort: 8444
+        - external: true
+          exposedPort: 8446
+          targetPort: 8446
+        - external: true
+          exposedPort: 8080
+          targetPort: 8080
       allowInsecure: false
       external: true
       exposedPort: 8443
       targetPort: 8443
       traffic:
-      - latestRevision: true
-        weight: 100
+        - latestRevision: true
+          weight: 100
       transport: tcp
-  managedEnvironmentId: xxxxx
+  managedEnvironmentId: <REMOVED>
   template:
     containers:
       - name: takserver-messaging
-        image: pvarki/takserver:4.7-RELEASE-32-dev
+        image: pvarki/takserver:4.10-RELEASE-12-dev
         resources:
-          cpu: 2
-          memory: 4Gi
+          cpu: 1
+          memory: 2Gi
         command: [ '/opt/scripts/start-tak.sh','messaging' ]
         env:
           - name: ADMIN_CERT_PASS
@@ -49,7 +49,7 @@ properties:
           - name: POSTGRES_USER
             value: martiuser
           - name: POSTGRES_ADDRESS
-            value: xxxx
+            value: <REMOVED>
           - name: POSTGRES_PASSWORD
             value: Password12341
         volumeMounts:
@@ -58,10 +58,10 @@ properties:
           - mountPath: /opt/tak/data/certs
             volumeName: takserver-certs
       - name: takserver-api
-        image: pvarki/takserver:4.7-RELEASE-32-dev
+        image: pvarki/takserver:4.10-RELEASE-12-dev
         resources:
-          cpu: 2
-          memory: 4Gi
+          cpu: 1
+          memory: 2Gi
         command: [ '/opt/scripts/start-tak.sh','api' ]
         env:
           - name: ADMIN_CERT_PASS
@@ -75,7 +75,35 @@ properties:
           - name: POSTGRES_USER
             value: martiuser
           - name: POSTGRES_ADDRESS
-            value: xxxx
+            value: <REMOVED>
+          - name: POSTGRES_PASSWORD
+            value: Password12341
+          - name: ADMIN_CERT_NAME
+            value: admin
+        volumeMounts:
+          - mountPath: /opt/tak/data/logs
+            volumeName: takserver-logs
+          - mountPath: /opt/tak/data/certs
+            volumeName: takserver-certs
+      - name: takserver-pm
+        image: pvarki/takserver:4.10-RELEASE-12-dev
+        resources:
+          cpu: 1
+          memory: 2Gi
+        command: [ '/opt/scripts/start-tak.sh','pm' ]
+        env:
+          - name: ADMIN_CERT_PASS
+            value: Password12341
+          - name: TAKSERVER_CERT_PASS
+            value: Password12341
+          - name: CA_PASS
+            value: CAPassword123
+          - name: POSTGRES_DB
+            value: cot
+          - name: POSTGRES_USER
+            value: martiuser
+          - name: POSTGRES_ADDRESS
+            value: <REMOVED>
           - name: POSTGRES_PASSWORD
             value: Password12341
           - name: ADMIN_CERT_NAME
@@ -90,7 +118,7 @@ properties:
       maxReplicas: 1
     initContainers:
       - name: takserver-init
-        image: pvarki/takserver:4.7-RELEASE-32-dev
+        image: pvarki/takserver:4.10-RELEASE-12-dev
         resources:
           cpu: 0.25
           memory: 0.5Gi
@@ -104,7 +132,7 @@ properties:
           - name: POSTGRES_USER
             value: martiuser
           - name: POSTGRES_ADDRESS
-            value: 
+            value: <REMOVED>
           - name: POSTGRES_PASSWORD
             value: Password12341
           - name: ADMIN_CERT_NAME
@@ -127,6 +155,7 @@ properties:
             value: Test
           - name: ORGANIZATIONAL_UNIT
             value: Test
+
             
     volumes:
       - name: takserver-logs
