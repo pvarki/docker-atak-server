@@ -5,6 +5,7 @@ CONFIG=${TR}/data/CoreConfig.xml
 
 set -e
 
+
 # Remove hardcoded country code
 sed -i.orig "s/COUNTRY=US/COUNTRY=\${COUNTRY}/g" ${CR}/cert-metadata.sh
 # Override some distribution scripts outright since doing it with sed is too painful
@@ -27,8 +28,9 @@ if [[ ! -L "${TR}/certs"  ]];then
   ln -s "${TR}/data/certs/" "${TR}/certs"
 fi
 
-# Symlink the log directory
-if [[ ! -L "${TR}/certs"  ]];then
+# Symlink the log directory under data dir
+mkdir -p ${TR}/data/logs
+if [[ ! -L "${TR}/logs"  ]];then
   ln -s "${TR}/data/logs/" "${TR}/logs"
 fi
 
@@ -57,4 +59,4 @@ chmod -R 777 ${TR}/data/
 echo "Wait for postgres"
 WAITFORIT_TIMEOUT=60 /usr/bin/wait-for-it.sh ${POSTGRES_ADDRESS}:5432 -- true
 echo "Init db"
-java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_USER} -password ${POSTGRES_PASSWORD} upgrade
+java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_SUPERUSER} -password ${POSTGRES_SUPER_PASSWORD} upgrade
