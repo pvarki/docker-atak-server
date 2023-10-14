@@ -5,6 +5,7 @@ CONFIG=${TR}/data/CoreConfig.xml
 
 set -e
 
+
 # Remove hardcoded country code
 sed -i.orig "s/COUNTRY=US/COUNTRY=\${COUNTRY}/g" ${CR}/cert-metadata.sh
 # Override some distribution scripts outright since doing it with sed is too painful
@@ -27,8 +28,9 @@ if [[ ! -L "${TR}/certs"  ]];then
   ln -s "${TR}/data/certs/" "${TR}/certs"
 fi
 
-# Symlink the log directory
-if [[ ! -L "${TR}/certs"  ]];then
+# Symlink the log directory under data dir
+mkdir -p ${TR}/data/logs
+if [[ ! -L "${TR}/logs"  ]];then
   ln -s "${TR}/data/logs/" "${TR}/logs"
 fi
 
