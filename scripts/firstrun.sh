@@ -25,13 +25,15 @@ fi
 # Move original certificate data and symlink to certificate data in data dir
 if [[ ! -L "${TR}/certs"  ]];then
   mv ${TR}/certs ${TR}/certs.orig
-  ln -s "${TR}/data/certs/" "${TR}/certs"
+  ln -f -s "${TR}/data/certs/" "${TR}/certs"
 fi
 
 # Symlink the log directory under data dir
-mkdir -p ${TR}/data/logs
+if [[ ! -d "${TR}/data/logs" ]];then
+  mkdir -p "${TR}/data/logs"
+fi
 if [[ ! -L "${TR}/logs"  ]];then
-  ln -s "${TR}/data/logs/" "${TR}/logs"
+  ln -f -s "${TR}/data/logs/" "${TR}/logs"
 fi
 
 cd ${CR}
