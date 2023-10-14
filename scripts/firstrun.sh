@@ -8,10 +8,7 @@ set -e
 # Remove hardcoded country code
 sed -i.orig "s/COUNTRY=US/COUNTRY=\${COUNTRY}/g" ${CR}/cert-metadata.sh
 # Override some distribution scripts outright since doing it with sed is too painful
-if [[ ! "/opt/scripts/makeCert.sh" ]];then
-  mv /opt/scripts/makeCert.sh ${CR}/
-fi
-
+cp /opt/scripts/makeCert.sh ${CR}/
 
 # Seed initial certificate data if necessary
 if [[ ! -d "${TR}/data/certs" ]];then
