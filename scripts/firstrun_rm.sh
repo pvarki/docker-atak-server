@@ -24,7 +24,13 @@ echo "FIXME: Get CA cert from RASENMAEHER (hint: look in /ca_public)"
 echo "FIXME: Get LE (or mkcert) cert from KRAFTWERK (hint: look at /le_certs)"
 
 
+set -e
 echo "Wait for postgres"
 WAITFORIT_TIMEOUT=60 /usr/bin/wait-for-it.sh ${POSTGRES_ADDRESS}:5432 -- true
 echo "Init db"
-java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_SUPERUSER} -password ${POSTGRES_SUPER_PASSWORD} upgrade
+# This requires postgres superuser privileges which we do not want to actually give to tak containers
+# java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_SUPERUSER} -password ${POSTGRES_SUPER_PASSWORD} upgrade
+# First import base SQL file to get base migration state
+PGPASSWORD=${POSTGRES_PASSWORD} psql -v ON_ERROR_STOP=1 -h ${POSTGRES_ADDRESS} -U ${POSTGRES_USER} ${POSTGRES_DB} --single-transaction --file /opt/scripts/takdb_base.sql
+# Then if there are any un-applied migrations apply them.
+java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_USER} -password ${POSTGRES_PASSWORD} upgrade

@@ -24,6 +24,7 @@ RUN apt-get update && apt-get install -y \
       pwgen \
       zip \
       openssh-client \
+      postgresql-client \
       jq \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
