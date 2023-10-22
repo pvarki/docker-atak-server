@@ -71,7 +71,7 @@
         <!-- <static _name="MulticastProxy" protocol="udp" address="239.2.3.1" port="6969" /> -->
     </subscription>
 
-    <repository enable="true" numDbConnections="16" primaryKeyBatchSize="500" insertionBatchSize="500">POSTGRES_DB
+    <repository enable="true" numDbConnections="50" primaryKeyBatchSize="500" insertionBatchSize="500">
       <connection url="jdbc:postgresql://{{getenv "POSTGRES_ADDRESS" "tak-database"}}:5432/{{getenv "POSTGRES_DB" "cot"}}" username="{{.Env.POSTGRES_USER}}" password="{{.Env.POSTGRES_PASSWORD}}" />
     </repository>
 

@@ -34,8 +34,8 @@ properties:
       - name: takserver-messaging
         image: pvarki/takserver:4.10-RELEASE-12-dev
         resources:
-          cpu: 1
-          memory: 2Gi
+          cpu: 1.5
+          memory: 3Gi
         command: [ '/opt/scripts/start-tak.sh','messaging' ]
         env:
           - name: ADMIN_CERT_PASS
@@ -60,8 +60,8 @@ properties:
       - name: takserver-api
         image: pvarki/takserver:4.10-RELEASE-12-dev
         resources:
-          cpu: 1
-          memory: 2Gi
+          cpu: 1.5
+          memory: 3Gi
         command: [ '/opt/scripts/start-tak.sh','api' ]
         env:
           - name: ADMIN_CERT_PASS
@@ -88,8 +88,8 @@ properties:
       - name: takserver-pm
         image: pvarki/takserver:4.10-RELEASE-12-dev
         resources:
-          cpu: 1
-          memory: 2Gi
+          cpu: 0.5
+          memory: 1Gi
         command: [ '/opt/scripts/start-tak.sh','pm' ]
         env:
           - name: ADMIN_CERT_PASS
@@ -116,8 +116,8 @@ properties:
       - name: takserver-retention
         image: pvarki/takserver:4.10-RELEASE-12-dev
         resources:
-          cpu: 1
-          memory: 2Gi
+          cpu: 0.5
+          memory: 1Gi
         command: [ '/opt/scripts/start-tak.sh','retention' ]
         env:
           - name: ADMIN_CERT_PASS
@@ -183,7 +183,11 @@ properties:
             value: Test
           - name: ORGANIZATIONAL_UNIT
             value: Test
-
+          - name: POSTGRES_SUPERUSER
+            value: martiuser
+          - name: POSTGRES_SUPER_PASSWORD
+            value: Password12341
+            
     volumes:
       - name: takserver-logs
         storageType: EmptyDir

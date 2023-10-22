@@ -21,8 +21,8 @@ properties:
       - name: takdb
         image: postgis/postgis:15-3.3
         resources:
-          cpu: 0.5
-          memory: 1Gi
+          cpu: 2
+          memory: 4Gi
         volumeMounts:
           - mountPath: /var/lib/postgresql/data
             volumeName: takdb
@@ -34,6 +34,10 @@ properties:
           - name: POSTGRES_ADDRESS
             value: takdb
           - name: POSTGRES_PASSWORD
+            value: Password12341
+          - name: POSTGRES_SUPERUSER
+            value: martiuser
+          - name: POSTGRES_SUPER_PASSWORD
             value: Password12341
     scale:
       minReplicas: 1
