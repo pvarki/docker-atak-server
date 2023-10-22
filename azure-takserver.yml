@@ -187,7 +187,7 @@ properties:
             value: martiuser
           - name: POSTGRES_SUPER_PASSWORD
             value: Password12341
-            
+
     volumes:
       - name: takserver-logs
         storageType: EmptyDir
