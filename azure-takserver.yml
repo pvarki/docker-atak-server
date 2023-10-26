@@ -32,7 +32,7 @@ properties:
   template:
     containers:
       - name: takserver-messaging
-        image: pvarki/takserver:4.10-RELEASE-12-dev
+        image: pvarki/takserver:4.10-RELEASE-50
         resources:
           cpu: 1.5
           memory: 3Gi
@@ -53,12 +53,10 @@ properties:
           - name: POSTGRES_PASSWORD
             value: Password12341
         volumeMounts:
-          - mountPath: /opt/tak/data/logs
-            volumeName: takserver-logs
-          - mountPath: /opt/tak/data/certs
-            volumeName: takserver-certs
+          - mountPath: /opt/tak/data
+            volumeName: takserver-data
       - name: takserver-api
-        image: pvarki/takserver:4.10-RELEASE-12-dev
+        image: pvarki/takserver:4.10-RELEASE-50
         resources:
           cpu: 1.5
           memory: 3Gi
@@ -81,12 +79,10 @@ properties:
           - name: ADMIN_CERT_NAME
             value: admin
         volumeMounts:
-          - mountPath: /opt/tak/data/logs
-            volumeName: takserver-logs
-          - mountPath: /opt/tak/data/certs
-            volumeName: takserver-certs
+          - mountPath: /opt/tak/data
+            volumeName: takserver-data
       - name: takserver-pm
-        image: pvarki/takserver:4.10-RELEASE-12-dev
+        image: pvarki/takserver:4.10-RELEASE-50
         resources:
           cpu: 0.5
           memory: 1Gi
@@ -109,12 +105,10 @@ properties:
           - name: ADMIN_CERT_NAME
             value: admin
         volumeMounts:
-          - mountPath: /opt/tak/data/logs
-            volumeName: takserver-logs
-          - mountPath: /opt/tak/data/certs
-            volumeName: takserver-certs
+          - mountPath: /opt/tak/data
+            volumeName: takserver-data
       - name: takserver-retention
-        image: pvarki/takserver:4.10-RELEASE-12-dev
+        image: pvarki/takserver:4.10-RELEASE-50
         resources:
           cpu: 0.5
           memory: 1Gi
@@ -137,23 +131,21 @@ properties:
           - name: ADMIN_CERT_NAME
             value: admin
         volumeMounts:
-          - mountPath: /opt/tak/data/logs
-            volumeName: takserver-logs
-          - mountPath: /opt/tak/data/certs
-            volumeName: takserver-certs
+          - mountPath: /opt/tak/data
+            volumeName: takserver-data
     scale:
       minReplicas: 1
       maxReplicas: 1
     initContainers:
       - name: takserver-init
-        image: pvarki/takserver:4.10-RELEASE-12-dev
+        image: pvarki/takserver:4.10-RELEASE-50
         resources:
           cpu: 0.25
           memory: 0.5Gi
         command: [ '/opt/scripts/firstrun.sh' ]
         volumeMounts:
-          - mountPath: /opt/tak/data/certs
-            volumeName: takserver-certs
+          - mountPath: /opt/tak/data
+            volumeName: takserver-data
         env:
           - name: POSTGRES_DB
             value: cot
@@ -189,11 +181,7 @@ properties:
             value: Password12341
 
     volumes:
-      - name: takserver-logs
+      - name: takserver-data
         storageType: EmptyDir
 #        storageType: AzureFile
 #        storageName: takserver-logs
-      - name: takserver-certs
-        storageType: EmptyDir
-#        storageType: AzureFile
-#        storageName: takserver-certs
