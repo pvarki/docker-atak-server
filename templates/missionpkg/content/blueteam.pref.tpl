@@ -8,8 +8,8 @@
    </preference>
    <preference version="1" name="com.atakmap.app_preferences">
       <entry key="displayServerConnectionWidget" class="class java.lang.Boolean">true</entry>
-      <entry key="caLocation" class="class java.lang.String">cert/takserver-public.p12</entry>
-      <entry key="caPassword" class="class java.lang.String">public</entry>
+      <entry key="caLocation" class="class java.lang.String">cert/truststore-root.p12</entry>
+      <entry key="caPassword" class="class java.lang.String">{{.Env.CA_PASS}}</entry>
       <entry key="certificateLocation" class="class java.lang.String">cert/{{.Env.CLIENT_CERT_NAME}}.p12</entry>
       <entry key="clientPassword" class="class java.lang.String">{{.Env.CLIENT_CERT_PASSWORD}}</entry>
    </preference>

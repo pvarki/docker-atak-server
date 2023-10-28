@@ -31,10 +31,10 @@ cd ${TR}
 # Start the right process
 if [ $1 = "messaging" ]; then
     echo "Starting TAK Messaging"
-    java -jar -Xmx${MESSAGING_MAX_HEAP}m -Dspring.profiles.active=messaging takserver.war
+    java -jar -Xmx${MESSAGING_MAX_HEAP}m -Dspring.profiles.active=messaging,consolelog takserver.war --logging.level.root=DEBUG
 elif [ $1 = "api" ]; then
     echo "Starting TAK API"
-    java -jar -Xmx${API_MAX_HEAP}m -Dspring.profiles.active=api -Dkeystore.pkcs12.legacy takserver.war
+    java -jar -Xmx${API_MAX_HEAP}m -Dspring.profiles.active=api,consolelog -Dkeystore.pkcs12.legacy takserver.war
 elif [ $1 = "retention" ]; then
     echo "Starting TAK API"
     java -jar -Xmx${RETENTION_MAX_HEAP}m takserver-retention.jar

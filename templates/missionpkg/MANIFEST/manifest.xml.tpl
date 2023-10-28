@@ -8,7 +8,7 @@
       <Content ignore="false" zipEntry="content/blueteam.pref"/>
       <Content ignore="false" zipEntry="content/Google_Hybrid.xml"/>
       <Content ignore="false" zipEntry="content/{{.Env.CLIENT_CERT_NAME}}.p12"/>
-      <Content ignore="false" zipEntry="content/takserver-public.p12"/>
+      <Content ignore="false" zipEntry="content/truststore-root.p12"/>
       <Content ignore="false" zipEntry="TAK_defaults.pref"/>
    </Contents>
 </MissionPackageManifest>
