@@ -4,12 +4,12 @@ CR=${TR}/certs
 
 TAK_SERVER_KEY_FILENAME="${TAK_SERVER_KEY_FILENAME:-/le_certs/rasenmaeher/privkey.pem}"
 TAK_SERVER_CERT_FILENAME="${TAK_SERVER_CERT_FILENAME:-/le_certs/rasenmaeher/fullchain.pem}"
-TAKSERVER_CERT_PASS="${TAKSERVER_CERT_PASS:-takservercertpass}"
+TAKSERVER_KEYSTORE_PASS="${TAKSERVER_KEYSTORE_PASS:-takservercertpass}"
 
 RM_CERT_CHAIN_FILENAME="${RM_CERT_CHAIN_FILENAME:-/ca_public/ca_chain.pem}"
 
 # Secret to trusted certs java keystore
-CA_PASS="${CA_PASS:-takcacertpw}"
+KEYSTORE_PASS="${KEYSTORE_PASS:-takcacertpw}"
 
 # Symlink the log directory under data dir
 if [[ ! -d "${TR}/data/logs" ]];then
@@ -42,16 +42,16 @@ openssl pkcs12 -export -out takserver.p12 \
   -inkey "${TAK_SERVER_KEY_FILENAME}" \
   -in "${TAK_SERVER_CERT_FILENAME}" \
   -name "${TAK_SERVER_HOSTNAME}" \
-  -passout pass:${TAKSERVER_CERT_PASS}
+  -passout pass:${TAKSERVER_KEYSTORE_PASS}
 
 # Create the Java keystore and import takserver.p12
 keytool -importkeystore -srcstoretype PKCS12 \
   -destkeystore takserver.jks \
   -srckeystore takserver.p12 \
   -alias "${TAK_SERVER_HOSTNAME}" \
-  -srcstorepass "${TAKSERVER_CERT_PASS}" \
-  -deststorepass "${TAKSERVER_CERT_PASS}" \
-  -destkeypass "${TAKSERVER_CERT_PASS}"
+  -srcstorepass "${TAKSERVER_KEYSTORE_PASS}" \
+  -deststorepass "${TAKSERVER_KEYSTORE_PASS}" \
+  -destkeypass "${TAKSERVER_KEYSTORE_PASS}"
 
 # Crate trust store, all the trusted CA/root certificates are dumped here. Keytool should accept certs either one by one or as a chain. -alias needs to be unique for all imports
 ALIAS=$(openssl x509 -noout -subject -in "${RM_CERT_CHAIN_FILENAME}" |md5sum | cut -d" " -f1)
@@ -59,7 +59,7 @@ keytool -noprompt -import -trustcacerts \
   -file "${RM_CERT_CHAIN_FILENAME}" \
   -alias $ALIAS \
   -keystore takserver-truststore.jks \
-  -storepass ${CA_PASS}
+  -storepass ${KEYSTORE_PASS}
 
 if [[ -f "/ca_public/miniwerk_ca.pem" ]];then
   ALIAS=$(openssl x509 -noout -subject -in "/ca_public/miniwerk_ca.pem" |md5sum | cut -d" " -f1)
@@ -67,7 +67,7 @@ if [[ -f "/ca_public/miniwerk_ca.pem" ]];then
     -file /ca_public/miniwerk_ca.pem \
     -alias $ALIAS \
     -keystore takserver-truststore.jks \
-    -storepass ${CA_PASS}
+    -storepass ${KEYSTORE_PASS}
 fi
 
 # fed-truststore.jks is needed, copy takserver-truststore.jks
