@@ -1,0 +1,131 @@
+version: '3.4'
+
+x-takbuilds: &takbuildinfo
+  image: &takimg "pvarki/takserver:${TAK_RELEASE:-4.10-RELEASE-12}${DOCKER_TAG_EXTRA:-}"
+  build:
+    context: .
+    dockerfile: Dockerfile
+
+services:
+
+  takserver_initialization:
+    <<: *takbuildinfo
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      takdb:
+        condition: service_healthy
+    networks:
+      - taknet
+    volumes:
+      - takserver_data:/opt/tak/data
+    command: /opt/scripts/firstrun.sh
+
+  takserver_messaging:
+    <<: *takbuildinfo
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      takserver_initialization:
+          condition: service_completed_successfully
+    volumes:
+      - takserver_data:/opt/tak/data
+    networks:
+      - taknet
+    ports:
+      - '8443:8443'
+      - '8444:8444'
+      - '8446:8446'
+      - '8089:8089'
+      - '8080:8080'
+    command: ./opt/scripts/start-tak.sh messaging
+    healthcheck:
+      test: 'true'  # FIXME
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  takserver_api:
+    <<: *takbuildinfo
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      takdb:
+        condition: service_healthy
+      takserver_messaging:
+        condition: service_healthy
+    volumes:
+      - takserver_data:/opt/tak/data
+    network_mode: "service:takserver_messaging"
+    command: ./opt/scripts/start-tak.sh api
+    healthcheck:
+      test: 'true'  # FIXME
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  takserver_retention:
+    <<: *takbuildinfo
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      takdb:
+        condition: service_healthy
+      takserver_messaging:
+        condition: service_healthy
+    volumes:
+      - takserver_data:/opt/tak/data
+    network_mode: "service:takserver_messaging"
+    command: ./opt/scripts/start-tak.sh retention
+    healthcheck:
+      test: 'true'  # FIXME
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  takserver_pluginmanager:
+    <<: *takbuildinfo
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      takdb:
+        condition: service_healthy
+      takserver_api:
+        condition: service_healthy
+    volumes:
+      - takserver_data:/opt/tak/data
+    network_mode: "service:takserver_messaging"
+    command: ./opt/scripts/start-tak.sh pm
+    healthcheck:
+      test: 'true'  # FIXME
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  takdb:
+    image: postgis/postgis:15-3.3
+    networks:
+      - taknet
+    env_file:
+      - 'takserver.env'
+    volumes:
+      - 'takdb_data:/var/lib/postgresql/data'
+    healthcheck:
+      test: "pg_isready --dbname=$$POSTGRES_DB --username=$$POSTGRES_USER"
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+networks:
+  taknet:
+
+volumes:
+  takdb_data:
+    driver: local
+  takserver_data:
+    driver: local

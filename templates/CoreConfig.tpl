@@ -31,7 +31,7 @@
         <connector port="8443" _name="https"/>
         <connector port="8444" useFederationTruststore="true" _name="fed_https"/>
         <connector port="8446" clientAuth="false" _name="cert_https"/>
-        <!-- <connector port="8080" tls="false" _name="http_plaintext"/> -->
+        <connector port="8080" tls="false" _name="http_plaintext"/>
     </network>
     <auth>
                 <!-- Example OpenLDAP -->
@@ -71,7 +71,7 @@
         <!-- <static _name="MulticastProxy" protocol="udp" address="239.2.3.1" port="6969" /> -->
     </subscription>
 
-    <repository enable="true" numDbConnections="16" primaryKeyBatchSize="500" insertionBatchSize="500">POSTGRES_DB
+    <repository enable="true" numDbConnections="50" primaryKeyBatchSize="500" insertionBatchSize="500">
       <connection url="jdbc:postgresql://{{getenv "POSTGRES_ADDRESS" "tak-database"}}:5432/{{getenv "POSTGRES_DB" "cot"}}" username="{{.Env.POSTGRES_USER}}" password="{{.Env.POSTGRES_PASSWORD}}" />
     </repository>
 

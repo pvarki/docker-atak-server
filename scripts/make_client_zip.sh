@@ -29,7 +29,7 @@ rm ${WORK_DIR}/content/blueteam.pref.tpl ${WORK_DIR}/MANIFEST/manifest.xml.tpl
 cd ${CR}
 CAPASS=${CA_PASS} PASS="${CLIENT_CERT_PASSWORD}" bash makeCert.sh client "${CLIENT_CERT_NAME}"
 cp ${CR}/files/${CLIENT_CERT_NAME}.p12 ${WORK_DIR}/content/
-cp ${CR}/files/takserver-public.p12 ${WORK_DIR}/content/
+cp ${CR}/files/truststore-root.p12 ${WORK_DIR}/content/
 
 cd $WORK_DIR
 zip -r ${tmp_dir}/${CLIENT_CERT_NAME}.zip ./
