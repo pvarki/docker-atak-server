@@ -1,4 +1,10 @@
 #!/usr/bin/env -S /bin/bash
+if [ -f /opt/tak/data/firstrun.done ]
+then
+  echo "First run already cone"
+  exit 0
+fi
+
 TR=/opt/tak
 CR=${TR}/certs
 
@@ -90,3 +96,5 @@ echo "Init db"
 PGPASSWORD=${POSTGRES_PASSWORD} psql -v ON_ERROR_STOP=1 -h ${POSTGRES_ADDRESS} -U ${POSTGRES_USER} ${POSTGRES_DB} --single-transaction --file /opt/scripts/takdb_base.sql
 # Then if there are any un-applied migrations apply them.
 java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_USER} -password ${POSTGRES_PASSWORD} upgrade
+
+date -u +"%Y%m%dT%H%M" >/opt/tak/data/firstrun.done

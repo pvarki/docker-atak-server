@@ -1,4 +1,10 @@
 #!/usr/bin/env -S /bin/bash
+if [ -f /opt/tak/data/firstrun.done ]
+then
+  echo "First run already cone"
+  exit 0
+fi
+
 TR=/opt/tak
 CR=${TR}/certs
 CONFIG=${TR}/data/CoreConfig.xml
@@ -62,3 +68,5 @@ echo "Wait for postgres"
 WAITFORIT_TIMEOUT=60 /usr/bin/wait-for-it.sh ${POSTGRES_ADDRESS}:5432 -- true
 echo "Init db"
 java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_SUPERUSER} -password ${POSTGRES_SUPER_PASSWORD} upgrade
+
+date -u +"%Y%m%dT%H%M" >/opt/tak/data/firstrun.done
