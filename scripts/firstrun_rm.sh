@@ -49,7 +49,8 @@ if [ $? -ne 0 ] ; then
   LEGACY_PROVIDER="-legacy"
 fi
 
-
+# FIXME: We need to update these when the LE cert gets updated so these can't be inside of the firstrun.done -check
+#        But they also seem get hissy if you try to add the same cert multiple times
 # Create takserver.p12 using certificates from RM
 openssl pkcs12 ${LEGACY_PROVIDER} -export -out takserver.p12 \
   -inkey "${TAK_SERVER_KEY_FILENAME}" \
