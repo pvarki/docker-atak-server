@@ -68,12 +68,29 @@ keytool -importkeystore -srcstoretype PKCS12 \
   -destkeypass "${TAKSERVER_KEYSTORE_PASS}"
 
 # Crate trust store, all the trusted CA/root certificates are dumped here. Keytool should accept certs either one by one or as a chain. -alias needs to be unique for all imports
-ALIAS=$(openssl x509 -noout -subject -in "${RM_CERT_CHAIN_FILENAME}" |md5sum | cut -d" " -f1)
+#ALIAS=$(openssl x509 -noout -subject -in "${RM_CERT_CHAIN_FILENAME}" |md5sum | cut -d" " -f1)
+#keytool -noprompt -import -trustcacerts \
+#  -file "${RM_CERT_CHAIN_FILENAME}" \
+#  -alias $ALIAS \
+#  -keystore takserver-truststore.jks \
+#  -storepass ${KEYSTORE_PASS}
+
+ALIAS=$(openssl x509 -noout -subject -in "/ca_public/root_ca.pem" |md5sum | cut -d" " -f1)
+
 keytool -noprompt -import -trustcacerts \
-  -file "${RM_CERT_CHAIN_FILENAME}" \
+  -file "/ca_public/root_ca.pem" \
   -alias $ALIAS \
   -keystore takserver-truststore.jks \
   -storepass ${KEYSTORE_PASS}
+
+ALIAS=$(openssl x509 -noout -subject -in "/ca_public/intermediate_ca.pem" |md5sum | cut -d" " -f1)
+
+keytool -noprompt -import -trustcacerts \
+  -file "/ca_public/intermediate_ca.pem" \
+  -alias $ALIAS \
+  -keystore takserver-truststore.jks \
+  -storepass ${KEYSTORE_PASS}
+
 
 if [[ -f "/ca_public/miniwerk_ca.pem" ]];then
   ALIAS=$(openssl x509 -noout -subject -in "/ca_public/miniwerk_ca.pem" |md5sum | cut -d" " -f1)
