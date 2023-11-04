@@ -1,7 +1,7 @@
 #!/usr/bin/env -S /bin/bash
 if [ -f /opt/tak/data/firstrun.done ]
 then
-  echo "First run already cone"
+  echo "First run already done"
   exit 0
 fi
 
@@ -43,8 +43,15 @@ TAK_SERVER_HOSTNAME="$(cat /pvarki/kraftwerk-init.json | jq -r  .product.dns)"
 mkdir -p /opt/tak/data/certs/files
 pushd /opt/tak/data/certs/files >> /dev/null
 
+openssl list -providers 2>&1 | grep "\(invalid command\|unknown option\)" >/dev/null
+if [ $? -ne 0 ] ; then
+  echo "Using legacy provider"
+  LEGACY_PROVIDER="-legacy"
+fi
+
+
 # Create takserver.p12 using certificates from RM
-openssl pkcs12 -export -out takserver.p12 \
+openssl pkcs12 ${LEGACY_PROVIDER} -export -out takserver.p12 \
   -inkey "${TAK_SERVER_KEY_FILENAME}" \
   -in "${TAK_SERVER_CERT_FILENAME}" \
   -name "${TAK_SERVER_HOSTNAME}" \

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S /bin/bash
 if [ -f /opt/tak/data/firstrun.done ]
 then
-  echo "First run already cone"
+  echo "First run already done"
   exit 0
 fi
 
