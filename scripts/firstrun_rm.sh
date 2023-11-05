@@ -51,6 +51,8 @@ fi
 
 # FIXME: We need to update these when the LE cert gets updated so these can't be inside of the firstrun.done -check
 #        But they also seem get hissy if you try to add the same cert multiple times
+
+# We have to do this pkcs12 song and dance because keytool can't import private keys directly
 # Create takserver.p12 using certificates from RM
 openssl pkcs12 ${LEGACY_PROVIDER} -export -out takserver.p12 \
   -inkey "${TAK_SERVER_KEY_FILENAME}" \
@@ -67,36 +69,24 @@ keytool -importkeystore -srcstoretype PKCS12 \
   -deststorepass "${TAKSERVER_KEYSTORE_PASS}" \
   -destkeypass "${TAKSERVER_KEYSTORE_PASS}"
 
-# Crate trust store, all the trusted CA/root certificates are dumped here. Keytool should accept certs either one by one or as a chain. -alias needs to be unique for all imports
-#ALIAS=$(openssl x509 -noout -subject -in "${RM_CERT_CHAIN_FILENAME}" |md5sum | cut -d" " -f1)
-#keytool -noprompt -import -trustcacerts \
-#  -file "${RM_CERT_CHAIN_FILENAME}" \
-#  -alias $ALIAS \
-#  -keystore takserver-truststore.jks \
-#  -storepass ${KEYSTORE_PASS}
-
-ALIAS=$(openssl x509 -noout -subject -in "/ca_public/root_ca.pem" |md5sum | cut -d" " -f1)
-
+# Put the CA certs one-by-one (can't import full chains in one go) to the truststore
 keytool -noprompt -import -trustcacerts \
   -file "/ca_public/root_ca.pem" \
-  -alias $ALIAS \
+  -alias "RM_Root" \
   -keystore takserver-truststore.jks \
   -storepass ${KEYSTORE_PASS}
-
-ALIAS=$(openssl x509 -noout -subject -in "/ca_public/intermediate_ca.pem" |md5sum | cut -d" " -f1)
 
 keytool -noprompt -import -trustcacerts \
   -file "/ca_public/intermediate_ca.pem" \
-  -alias $ALIAS \
+  -alias "RM_Intermediate" \
   -keystore takserver-truststore.jks \
   -storepass ${KEYSTORE_PASS}
-
 
 if [[ -f "/ca_public/miniwerk_ca.pem" ]];then
   ALIAS=$(openssl x509 -noout -subject -in "/ca_public/miniwerk_ca.pem" |md5sum | cut -d" " -f1)
   keytool -noprompt -import -trustcacerts \
     -file /ca_public/miniwerk_ca.pem \
-    -alias $ALIAS \
+    -alias "MW_Root" \
     -keystore takserver-truststore.jks \
     -storepass ${KEYSTORE_PASS}
 fi
