@@ -10,7 +10,6 @@ RUN mv /zips/takserver-docker-*.zip /tmp/takserver.zip
 FROM eclipse-temurin:${TEMURIN_VERSION}-jammy as deps
 ENV \
   LC_ALL=C.UTF-8
-COPY --from=tak-files /tmp/takserver.zip /tmp/takserver.zip
 RUN apt-get update && apt-get install -y \
       emacs-nox \
       net-tools \
@@ -38,6 +37,7 @@ SHELL ["/bin/bash", "-lc"]
 
 FROM deps as install
 COPY docker/entrypoint.sh /entrypoint.sh
+COPY --from=tak-files /tmp/takserver.zip /tmp/takserver.zip
 RUN cd /tmp \
     && unzip takserver.zip \
     && rm takserver.zip \
