@@ -10,7 +10,6 @@ RUN mv /zips/takserver-docker-*.zip /tmp/takserver.zip
 FROM eclipse-temurin:${TEMURIN_VERSION}-jammy as deps
 ENV \
   LC_ALL=C.UTF-8
-COPY --from=tak-files /tmp/takserver.zip /tmp/takserver.zip
 RUN apt-get update && apt-get install -y \
       emacs-nox \
       net-tools \
@@ -24,6 +23,8 @@ RUN apt-get update && apt-get install -y \
       pwgen \
       zip \
       openssh-client \
+      postgresql-client \
+      jq \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /usr/bin/wait-for-it.sh \
@@ -36,6 +37,7 @@ SHELL ["/bin/bash", "-lc"]
 
 FROM deps as install
 COPY docker/entrypoint.sh /entrypoint.sh
+COPY --from=tak-files /tmp/takserver.zip /tmp/takserver.zip
 RUN cd /tmp \
     && unzip takserver.zip \
     && rm takserver.zip \

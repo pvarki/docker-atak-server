@@ -11,7 +11,9 @@ repos:
     -   id: check-ast
     -   id: check-toml
     -   id: trailing-whitespace
+        exclude: ".*.sql"
     -   id: end-of-file-fixer
+        exclude: ".*.sql"
     -   id: check-yaml
     -   id: check-added-large-files
     -   id: check-case-conflict
@@ -31,9 +33,13 @@ repos:
     rev: v1.1.13
     hooks:
     -   id: forbid-crlf
+        exclude: ".*.sql"
     -   id: remove-crlf
+        exclude: ".*.sql"
     -   id: forbid-tabs
+        exclude: ".*.sql"
     -   id: remove-tabs
+        exclude: ".*.sql"
 -   repo: https://github.com/Lucas-C/pre-commit-hooks-markup
     rev: v1.0.1
     hooks:
