@@ -37,3 +37,12 @@ services:
       args:
         TAK_VERSION: "4.10"
         TAK_RELEASE: "50"
+  v500:
+    image: pvarki/tak-server-dist:5.0-RELEASE-29
+    build:
+      context: .
+      dockerfile: Dockerfile_build
+      target: takgov_files
+      args:
+        TAK_VERSION: "5.0"
+        TAK_RELEASE: "29"
