@@ -13,7 +13,7 @@ tldr::
 or use docker compose.local.yml without gomplate for local dev (rebuilding containers)::
 
     export DOCKER_TAG_EXTRA="-dev"
-    docker build --no-cache --progress=plain -t takserver:latest${DOCKER_TAG_EXTRA} -t takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA} -t pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA} .
+    docker build --no-cache --progress=plain -t takserver:latest${DOCKER_TAG_EXTRA} -t takserver:5.0-RELEASE-29${DOCKER_TAG_EXTRA} -t pvarki/takserver:5.0-RELEASE-29${DOCKER_TAG_EXTRA} .
     cp takserver.env.example takserver.env
     # edit the env
     docker compose -f docker-compose.local.yml -p tak up
