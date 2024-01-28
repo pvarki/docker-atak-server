@@ -11,7 +11,7 @@
         <connector port="8446" clientAuth="false" _name="cert_https"/>
     </network>
     <auth>
-            <File location="UserAuthenticationFile.xml"/>
+        <File location="UserAuthenticationFile.xml"/>
     </auth>
     <submission ignoreStaleMessages="false" validateXml="false"/>
 
@@ -48,10 +48,8 @@
             keymanager="SunX509"
             keystore="JKS" keystoreFile="/opt/tak/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
             truststore="JKS" truststoreFile="/opt/tak/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}">
-         <!-- <crl _name="TAKServer CA" crlFile="certs/files/ca.crl"/>  -->
-
+            <crl _name="RASENMAEHER CA" crlFile="/ca_public/crl.pem"/>
         </tls>
-
     </security>
 
 </Configuration>
