@@ -31,7 +31,6 @@
         <connector port="8443" _name="https"/>
         <connector port="8444" useFederationTruststore="true" _name="fed_https"/>
         <connector port="8446" clientAuth="false" _name="cert_https"/>
-        <connector port="8080" tls="false" _name="http_plaintext"/>
     </network>
     <auth>
                 <!-- Example OpenLDAP -->
