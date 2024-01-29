@@ -11,7 +11,7 @@
         <connector port="8446" clientAuth="false" _name="cert_https"/>
     </network>
     <auth>
-        <File location="UserAuthenticationFile.xml"/>
+        <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
     </auth>
     <submission ignoreStaleMessages="false" validateXml="false"/>
 
