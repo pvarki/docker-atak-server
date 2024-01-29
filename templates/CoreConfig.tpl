@@ -48,7 +48,8 @@
             keymanager="SunX509"
             keystore="JKS" keystoreFile="/opt/tak/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
             truststore="JKS" truststoreFile="/opt/tak/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}">
-            <crl _name="RASENMAEHER CA" crlFile="/ca_public/crl.pem"/>
+            <crl _name="ROOT CA" crlFile="/ca_public/crl_root.pem"/>
+            <crl _name="RASENMAEHER CA" crlFile="/ca_public/crl_intermediate.pem"/>
         </tls>
     </security>
 
