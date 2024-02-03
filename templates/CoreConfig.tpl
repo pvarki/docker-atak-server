@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration xmlns="http://bbn.com/marti/xml/config"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="CoreConfig.xsd">
+        xsi:schemaLocation="/opt/tak/CoreConfig.xsd">
     <network multicastTTL="5">
         <input _name="stdssl" protocol="tls" port="8089"/>
 
@@ -44,10 +44,9 @@
     </buffer>
 
     <security>
-        <tls context="TLSv1.2"
-            keymanager="SunX509"
-            keystore="JKS" keystoreFile="/opt/tak/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
-            truststore="JKS" truststoreFile="/opt/tak/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
+        <tls keymanager="SunX509"
+            keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
+            truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
             enableOCSP="true" responderUrl="http://{{.Env.TAK_OCSP_UPSTREAM}}:{{.Env.TAK_OCSP_PORT}}"
             >
             <!-- CRLs have no sensible refresh mechanism, restarting the whole Java monstrocity is too slow
