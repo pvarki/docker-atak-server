@@ -2,13 +2,14 @@
 set -e
 
 TR=/opt/tak
-TAKCL_CORECONFIG_PATH=${TR}/data/CoreConfig_${1}.xml # use process specific copy
+export TAKCL_CORECONFIG_PATH=${TR}/data/CoreConfig_${1}.xml # use process specific copy
 COMMON_CONFIG_PATH=${TR}/data/CoreConfig.xml  # common path used by various scripts
 sleep 2
 
 # (re-)Create config
 echo "(Re-)Creating config"
 set -x
+export TAK_OCSP_UPSTREAM_IP=$(getent hosts ${TAK_OCSP_UPSTREAM} | awk '{ print $1 }')
 gomplate -f /opt/templates/CoreConfig.tpl -o ${COMMON_CONFIG_PATH}  # used by various scripts
 # Process specific config
 gomplate -f /opt/templates/CoreConfig.tpl -o ${TAKCL_CORECONFIG_PATH}
