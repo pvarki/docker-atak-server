@@ -43,17 +43,41 @@
         <queue/>
     </buffer>
 
+<!-- 8443 works but 8089 doesn't, I see *no* queries to OCSP server, error:  NioNettyServerHandler error. Cause: javax.net.ssl.SSLHandshakeException: General OpenSslEngine problem. Additional info: Remote address: REDACTED; Remote port: 57444; Local port: 8089; Certificate error: peer not verified;  -->
     <security>
         <tls keymanager="SunX509"
             keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
             truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
-            enableOCSP="true" responderUrl="http://{{.Env.TAK_OCSP_UPSTREAM}}:{{.Env.TAK_OCSP_PORT}}"
+            enableOCSP="true" responderUrl="http://{{.Env.TAK_OCSP_UPSTREAM_IP}}:{{.Env.TAK_OCSP_PORT}}"
+            />
+    </security>
+
+<!-- 8089 works (until CRL expires) but 8443 doesn't, there is no sane way to refresh the CRL (process restart is way too slow)
+     and I see *no* queries to OCSP server -->
+<!--
+    <security>
+        <tls keymanager="SunX509"
+            keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
+            truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
+            enableOCSP="true" responderUrl="http://{{.Env.TAK_OCSP_UPSTREAM_IP}}:{{.Env.TAK_OCSP_PORT}}"
             >
-            <!-- CRLs have no sensible refresh mechanism, restarting the whole Java monstrocity is too slow
             <crl _name="ROOT CA" crlFile="/ca_public/crl_root.pem"/>
             <crl _name="RASENMAEHER CA" crlFile="/ca_public/crl_intermediate.pem"/>
-            -->
         </tls>
     </security>
+-->
+
+<!-- in both of the above cases we get: [services-deployment-worker-#57%ignite-takserver%] WARN com.bbn.marti.service.SSLConfig - TLS enabled, but no certificate revocation lists, and OSCP is not enabled in Core Config!
+     however in the below case we get similar complaint a *second* time when the 8089 port actually starts serving -->
+
+<!-- 8089 and 8443 work but obviously revocation checks do not work -->
+<!--
+    <security>
+        <tls keymanager="SunX509"
+            keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
+            truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
+            />
+    </security>
+-->
 
 </Configuration>
