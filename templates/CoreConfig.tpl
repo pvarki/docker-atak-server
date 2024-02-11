@@ -43,7 +43,7 @@
         <queue/>
     </buffer>
 
-<!-- 8443 works but 8089 doesn't, I see *no* queries to OCSP server, error:  NioNettyServerHandler error. Cause: javax.net.ssl.SSLHandshakeException: General OpenSslEngine problem. Additional info: Remote address: REDACTED; Remote port: 57444; Local port: 8089; Certificate error: peer not verified;  -->
+<!-- With  "Authority Information Access" included in certs this works for both 8089 and 8443 but I see no OCSP query for 8443 -->
     <security>
         <tls keymanager="SunX509"
             keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
