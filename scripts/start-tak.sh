@@ -2,21 +2,29 @@
 set -e
 
 TR=/opt/tak
-CONFIG=${TR}/data/CoreConfig.xml
+export TAKCL_CORECONFIG_PATH=${TR}/data/CoreConfig_${1}.xml # use process specific copy
+COMMON_CONFIG_PATH=${TR}/data/CoreConfig.xml  # common path used by various scripts
+sleep 2
 
 # (re-)Create config
 echo "(Re-)Creating config"
-cat /opt/templates/CoreConfig.tpl | gomplate >${CONFIG}
+set -x
+export TAK_OCSP_UPSTREAM_IP=$(getent hosts ${TAK_OCSP_UPSTREAM} | awk '{ print $1 }')
+gomplate -f /opt/templates/CoreConfig.tpl -o ${COMMON_CONFIG_PATH}  # used by various scripts
+# Process specific config
+gomplate -f /opt/templates/CoreConfig.tpl -o ${TAKCL_CORECONFIG_PATH}
 # make sure it's in tak root too
-cp ${CONFIG} ${TR}
+ln -sf ${TAKCL_CORECONFIG_PATH} ${TR}/CoreConfig.xml
+ls -lah ${TR}/CoreConfig.xml
+cat ${TR}/CoreConfig.xml
+set +x
 
-# Symlink the certs coming from Volumes
+# Ensure anything not having the correct config loads certs and saves logs to the volume
+# (yes, we do need to re-check at every start)
 if [[ ! -L "${TR}/certs"  ]];then
   mv ${TR}/certs ${TR}/certs.orig
   ln -s "${TR}/data/certs/" "${TR}/certs"
 fi
-
-# Symlink the log directory coming from Volumes
 if [[ ! -L "${TR}/logs"  ]];then
   mv ${TR}/logs ${TR}/logs.orig
   ln -s "${TR}/data/logs/" "${TR}/logs"
@@ -31,7 +39,7 @@ cd ${TR}
 # Start the right process
 if [ $1 = "messaging" ]; then
     echo "Starting TAK Messaging"
-    java -jar -Xmx${MESSAGING_MAX_HEAP}m -Dspring.profiles.active=messaging,consolelog takserver.war
+    java -jar -Xmx${MESSAGING_MAX_HEAP}m -Dspring.profiles.active=messaging,consolelog -Dkeystore.pkcs12.legacy takserver.war
 elif [ $1 = "api" ]; then
     echo "Starting TAK API"
     java -jar -Xmx${API_MAX_HEAP}m -Dspring.profiles.active=api,consolelog -Dkeystore.pkcs12.legacy takserver.war

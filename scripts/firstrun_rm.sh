@@ -1,10 +1,4 @@
 #!/usr/bin/env -S /bin/bash
-if [ -f /opt/tak/data/firstrun.done ]
-then
-  echo "First run already done"
-  exit 0
-fi
-
 TR=/opt/tak
 CR=${TR}/certs
 
@@ -35,8 +29,6 @@ if [[ ! -L "${TR}/certs"  ]];then
   ln -f -s "${TR}/data/certs/" "${TR}/certs"
 fi
 
-set -x
-
 TAK_SERVER_HOSTNAME="$(cat /pvarki/kraftwerk-init.json | jq -r  .product.dns)"
 
 
@@ -49,9 +41,8 @@ if [ $? -ne 0 ] ; then
   LEGACY_PROVIDER="-legacy"
 fi
 
-# FIXME: We need to update these when the LE cert gets updated so these can't be inside of the firstrun.done -check
-#        But they also seem get hissy if you try to add the same cert multiple times
 
+echo "(re)Add TLS keys to keystore"
 # We have to do this pkcs12 song and dance because keytool can't import private keys directly
 # Create takserver.p12 using certificates from RM
 openssl pkcs12 ${LEGACY_PROVIDER} -export -out takserver.p12 \
@@ -60,6 +51,11 @@ openssl pkcs12 ${LEGACY_PROVIDER} -export -out takserver.p12 \
   -name "${TAK_SERVER_HOSTNAME}" \
   -passout pass:${TAKSERVER_KEYSTORE_PASS}
 
+# Remove the old key (if exists)
+keytool -delete \
+  -alias "${TAK_SERVER_HOSTNAME}" \
+  -keystore takserver.jks \
+  -storepass "${TAKSERVER_KEYSTORE_PASS}"
 # Create the Java keystore and import takserver.p12
 keytool -importkeystore -srcstoretype PKCS12 \
   -destkeystore takserver.jks \
@@ -70,12 +66,24 @@ keytool -importkeystore -srcstoretype PKCS12 \
   -destkeypass "${TAKSERVER_KEYSTORE_PASS}"
 
 # Put the CA certs one-by-one (can't import full chains in one go) to the truststore
+# Remove the old root key (if exists)
+keytool -delete \
+  -alias "RM_Root" \
+  -keystore takserver-truststore.jks \
+  -storepass ${KEYSTORE_PASS}
+# Add root key
 keytool -noprompt -import -trustcacerts \
   -file "/ca_public/root_ca.pem" \
   -alias "RM_Root" \
   -keystore takserver-truststore.jks \
   -storepass ${KEYSTORE_PASS}
 
+# Remove the old intermediate key (if exists)
+keytool -delete \
+  -alias "RM_Intermediate" \
+  -keystore takserver-truststore.jks \
+  -storepass ${KEYSTORE_PASS}
+# Add intermediate key
 keytool -noprompt -import -trustcacerts \
   -file "/ca_public/intermediate_ca.pem" \
   -alias "RM_Intermediate" \
@@ -83,7 +91,11 @@ keytool -noprompt -import -trustcacerts \
   -storepass ${KEYSTORE_PASS}
 
 if [[ -f "/ca_public/miniwerk_ca.pem" ]];then
-  ALIAS=$(openssl x509 -noout -subject -in "/ca_public/miniwerk_ca.pem" |md5sum | cut -d" " -f1)
+  # Remove the old key (if exists)
+  keytool -delete \
+    -alias "MW_Root" \
+    -keystore takserver-truststore.jks \
+    -storepass ${KEYSTORE_PASS}
   keytool -noprompt -import -trustcacerts \
     -file /ca_public/miniwerk_ca.pem \
     -alias "MW_Root" \
@@ -98,7 +110,11 @@ cp -v /opt/tak/data/certs/files/takserver-truststore.jks /opt/tak/data/certs/fil
 
 popd >> /dev/null
 
-
+if [ -f /opt/tak/data/firstrun.done ]
+then
+  echo "First run already done, not importing database"
+  exit 0
+fi
 
 
 set -e

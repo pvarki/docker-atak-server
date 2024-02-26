@@ -1,74 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration xmlns="http://bbn.com/marti/xml/config"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="CoreConfig.xsd">
+        xsi:schemaLocation="/opt/tak/CoreConfig.xsd">
     <network multicastTTL="5">
         <input _name="stdssl" protocol="tls" port="8089"/>
-        <!--
-        <input _name="stdtcp" protocol="tcp" port="8087" auth="anonymous"/>
-        <input _name="stdudp" protocol="udp" port="8087" auth="anonymous"/>
-        <input _name="streamtcp" protocol="stcp" port="8088" auth="anonymous"/>
-        -->
-        <!-- <input _name="SAproxy" protocol="mcast" group="239.2.3.1" port="6969" proxy="true" auth="anonymous" /> -->
-        <!-- <input _name="GeoChatproxy" protocol="mcast" group="224.10.10.1" port="17012" proxy="true" auth="anonymous" /> -->
-        <!--<announce enable="true" uid="Marti1" group="239.2.3.1" port="6969" interval="1" ip="192.168.1.137" />-->
-         <!--<input _name="stdssl" protocol="tls" port="8089"/>-->
-         <!--<input _name="sslauth" protocol="tls" port="8090" auth="ldap"/> -->
-        <!--<input _name="stdtcpwithgroups" protocol="tcp" port="8087" auth="anonymous">-->
-            <!--<filtergroup>group one</filtergroup>-->
-            <!--<filtergroup>group two</filtergroup>-->
-        <!--</input>-->
-        <!--<input _name="stdtcpwithfilters" protocol="tcp" port="8087" auth="anonymous">-->
-            <!--<filter>-->
-                <!--<geospatialFilter>-->
-                    <!--<boundingBox minLongitude="-80" minLatitude="34" maxLongitude="-70" maxLatitude="36" />-->
-                    <!--<boundingBox minLongitude="-100" minLatitude="34" maxLongitude="-90" maxLatitude="36" />-->
-                <!--</geospatialFilter>-->
-            <!--</filter>-->
-        <!--</input>-->
 
         <!-- web connectors -->
         <connector port="8443" _name="https"/>
         <connector port="8444" useFederationTruststore="true" _name="fed_https"/>
         <connector port="8446" clientAuth="false" _name="cert_https"/>
-        <connector port="8080" tls="false" _name="http_plaintext"/>
     </network>
     <auth>
-                <!-- Example OpenLDAP -->
-        <!--
-        <ldap
-            url="ldap://hostname.bbn.com/"
-            userstring="uid={username},ou=People,dc=XXX,dc=bbn,dc=com"
-            updateinterval="60"
-            style="DS"
-        />
-        -->
-
-        <!-- Example ActiveDirectory -->
-
-        <!--NOTE!! In the example below, GroupBaseDN should be specified relative to the naming context provided in the url attribute below -->
-        <!--
-        <ldap
-            url="ldap://hostname.bbn.com/dc=XXX,dc=bbn,dc=com"
-            userstring="DOMAIN\{username}"
-            updateinterval="60"
-            groupprefix=""
-            style="AD"
-            ldapSecurityType="simple"
-            serviceAccountDN="cn=fred001,cn=Users,cn=Partition1,dc=XYZ,dc=COM"
-            serviceAccountCredential="XXXXXX"
-            groupObjectClass="group"
-            groupBaseRDN="CN=Groups"/>
-        />
-
-        -->
-            <File location="UserAuthenticationFile.xml"/>
+        <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
     </auth>
     <submission ignoreStaleMessages="false" validateXml="false"/>
 
     <subscription reloadPersistent="false">
-        <!-- example static subscription that publishes messages to a UDP multicast address and port -->
-        <!-- <static _name="MulticastProxy" protocol="udp" address="239.2.3.1" port="6969" /> -->
     </subscription>
 
     <repository enable="true" numDbConnections="50" primaryKeyBatchSize="500" insertionBatchSize="500">
@@ -88,12 +35,6 @@
     <filter>
         <flowtag enable="false" text=""/>
         <streamingbroker enable="true"/>
-        <!--
-        <dropfilter>
-            <typefilter type="u-d-p" />
-            <typefilter type="u-d-c" />
-        </dropfilter>
-        -->
         <scrubber enable="false" action="overwrite"/>
     </filter>
 
@@ -102,68 +43,41 @@
         <queue/>
     </buffer>
 
+<!-- With  "Authority Information Access" included in certs this works for both 8089 and 8443 but I see no OCSP query for 8443 -->
     <security>
-        <tls context="TLSv1.2"
-            keymanager="SunX509"
-            keystore="JKS" keystoreFile="/opt/tak/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
-            truststore="JKS" truststoreFile="/opt/tak/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}">
-         <!-- <crl _name="TAKServer CA" crlFile="certs/files/ca.crl"/>  -->
-
-        </tls>
-
-         <!-- previous locations of keystore and truststore -->
-         <!--
-         <tls context="TLSv1.2"
-            keymanager="SunX509"
-            keystore="JKS" keystoreFile="certs/TAKServer.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
-            truststore="JKS" truststoreFile="certs/truststore.jks" truststorePass="{{.Env.CA_PASS}}">
-        </tls>
-        -->
-
+        <tls keymanager="SunX509"
+            keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
+            truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
+            enableOCSP="true" responderUrl="http://{{.Env.TAK_OCSP_UPSTREAM_IP}}:{{.Env.TAK_OCSP_PORT}}"
+            />
     </security>
 
+<!-- 8089 works (until CRL expires) but 8443 doesn't, there is no sane way to refresh the CRL (process restart is way too slow)
+     and I see *no* queries to OCSP server -->
 <!--
-    <federation>
-      <federation-server port="9000">
-        <tls context="TLSv1.2"
-         keymanager="SunX509"
-         keystore="JKS" keystoreFile="certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
-         truststore="JKS" truststoreFile="certs/files/fed-truststore.jks" truststorePass="{{.Env.CA_PASS}}"/>
-      </federation-server>
-    </federation>
+    <security>
+        <tls keymanager="SunX509"
+            keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
+            truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
+            enableOCSP="true" responderUrl="http://{{.Env.TAK_OCSP_UPSTREAM_IP}}:{{.Env.TAK_OCSP_PORT}}"
+            >
+            <crl _name="ROOT CA" crlFile="/ca_public/crl_root.pem"/>
+            <crl _name="RASENMAEHER CA" crlFile="/ca_public/crl_intermediate.pem"/>
+        </tls>
+    </security>
 -->
- <!-- previous locations of federate keystore and truststore -->
- <!--
- <tls context="TLSv1.2"
-         keymanager="SunX509"
-         keystore="JKS" keystoreFile="certs/TAKServer.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
-         truststore="JKS" truststoreFile="certs/fed-truststore.jks" truststorePass="{{.Env.CA_PASS}}"/>
- -->
 
+<!-- in both of the above cases we get: [services-deployment-worker-#57%ignite-takserver%] WARN com.bbn.marti.service.SSLConfig - TLS enabled, but no certificate revocation lists, and OSCP is not enabled in Core Config!
+     however in the below case we get similar complaint a *second* time when the 8089 port actually starts serving -->
+
+<!-- 8089 and 8443 work but obviously revocation checks do not work -->
 <!--
-
-<certificateSigning CA="{TAKServer | MicrosoftCA}">
-    <certificateConfig>
-        <nameEntries>
-            <nameEntry name="O" value="Test Org Name"/>
-            <nameEntry name="OU" value="Test Org Unit Name"/>
-        </nameEntries>
-    </certificateConfig>
-    <TAKServerCAConfig
-        keystore="JKS"
-        keystoreFile="certs/files/intermediate-ca-signing.jks"
-        keystorePass="atakatak"
-        validityDays="30"
-        signatureAlg="SHA256WithRSA" />
-    <MicrosoftCAConfig
-        username="{MS CA Username}"
-        password="{MS CA Password}"
-        truststore="/opt/tak/certs/files/keystore.jks"
-        truststorePass="atakatak"
-        svcUrl="https://{server}/{CA name}_CES_UsernamePassword/service.svc"
-        templateName="Copy of User"/>
-</certificateSigning>
-
+    <security>
+        <tls keymanager="SunX509"
+            keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
+            truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
+            />
+    </security>
 -->
 
 </Configuration>
