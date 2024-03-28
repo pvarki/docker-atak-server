@@ -1,0 +1,47 @@
+version: '3.4'
+
+services:
+  v47:
+    image: pvarki/tak-server-oss-dist:4.7-RELEASE-32
+    build:
+      context: .
+      dockerfile: Dockerfile_build
+      target: files
+      args:
+        TAK_RELEASE: "4.7-RELEASE-32"
+
+  v48:
+    image: pvarki/tak-server-oss-dist:4.8-RELEASE-63
+    build:
+      context: .
+      dockerfile: Dockerfile_build
+      target: files
+      args:
+        TAK_VERSION: "4.8-RELEASE-63"
+
+  v49:
+    image: pvarki/tak-server-oss-dist:4.9-RELEASE-50
+    build:
+      context: .
+      dockerfile: Dockerfile_build
+      target: files
+      args:
+        TAK_VERSION: "4.9-RELEASE-50"
+
+  v410:
+    image: pvarki/tak-server-oss-dist:4.10-RELEASE-68
+    build:
+      context: .
+      dockerfile: Dockerfile_build
+      target: files
+      args:
+        TAK_VERSION: "4.10-RELEASE-68"
+
+  v500:
+    image: pvarki/tak-server-oss-dist:5.0-RELEASE-30
+    build:
+      context: .
+      dockerfile: Dockerfile_build
+      target: files
+      args:
+        TAK_VERSION: "5.0-RELEASE-30"
