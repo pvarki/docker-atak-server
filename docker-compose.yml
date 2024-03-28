@@ -21,7 +21,7 @@ services:
       - takserver_data:/opt/tak/data
     command: /opt/scripts/firstrun.sh
 
-  takserver_messaging:
+  takserver_config:
     <<: *takbuildinfo
     env_file:
       - 'takserver.env'
@@ -38,7 +38,7 @@ services:
       - '8446:8446'
       - '8089:8089'
       - '8080:8080'
-    command: ./opt/scripts/start-tak.sh messaging
+    command: ./opt/scripts/start-tak.sh config
     healthcheck:
       test: 'true'  # FIXME
       interval: 5s
@@ -46,19 +46,19 @@ services:
       retries: 3
       start_period: 5s
 
-  takserver_config:
+  takserver_messaging:
     <<: *takbuildinfo
     env_file:
       - 'takserver.env'
     depends_on:
       takdb:
         condition: service_healthy
-      takserver_messaging:
+      takserver_config:
         condition: service_healthy
     volumes:
       - takserver_data:/opt/tak/data
-    network_mode: "service:takserver_messaging"
-    command: ./opt/scripts/start-tak.sh config
+    network_mode: "service:takserver_config"
+    command: ./opt/scripts/start-tak.sh messaging
     healthcheck:
       test: 'true'  # FIXME
       interval: 5s
@@ -74,6 +74,8 @@ services:
       takdb:
         condition: service_healthy
       takserver_messaging:
+        condition: service_healthy
+      takserver_config:
         condition: service_healthy
     volumes:
       - takserver_data:/opt/tak/data
@@ -95,6 +97,8 @@ services:
         condition: service_healthy
       takserver_messaging:
         condition: service_healthy
+      takserver_config:
+        condition: service_healthy
     volumes:
       - takserver_data:/opt/tak/data
     network_mode: "service:takserver_messaging"
@@ -114,6 +118,8 @@ services:
       takdb:
         condition: service_healthy
       takserver_api:
+        condition: service_healthy
+      takserver_config:
         condition: service_healthy
     volumes:
       - takserver_data:/opt/tak/data
