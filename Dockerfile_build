@@ -41,8 +41,8 @@ RUN mkdir /jars \
     && ls -lah /jars /zips
 
 FROM alpine as takgov_files
-ARG TAK_VERSION="4.10"
-ARG TAK_RELEASE="12"
+ARG TAK_VERSION="5.0"
+ARG TAK_RELEASE="69"
 COPY takgov_assets/*${TAK_VERSION}-RELEASE-${TAK_RELEASE}.zip /zips/
 COPY takgov_assets/*${TAK_VERSION}-sdk.zip /zips/
 CMD ["cp", "-r", "/zips/",  "/output/"]
