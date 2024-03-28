@@ -1,7 +1,7 @@
 version: '3.4'
 
 x-takbuilds: &takbuildinfo
-  image: &takimg "pvarki/takserver:${TAK_RELEASE:-4.10-RELEASE-12}${DOCKER_TAG_EXTRA:-}"
+  image: &takimg "pvarki/takserver:${TAK_RELEASE:-5.0-RELEASE-69}${DOCKER_TAG_EXTRA:-}"
   build:
     context: .
     dockerfile: Dockerfile
