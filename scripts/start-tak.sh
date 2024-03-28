@@ -4,10 +4,11 @@ set -e
 TR=/opt/tak
 export TAKCL_CORECONFIG_PATH=${TR}/data/CoreConfig_${1}.xml # use process specific copy
 COMMON_CONFIG_PATH=${TR}/data/CoreConfig.xml  # common path used by various scripts
+IGNITE_CONFIG_PATH=${TR}/data/TAKIgniteConfig.xml  # This should be same for everyone
 sleep 2
 
 # (re-)Create config
-echo "(Re-)Creating config"
+echo "(Re-)Creating CoreConfig"
 set -x
 export TAK_OCSP_UPSTREAM_IP=$(getent hosts ${TAK_OCSP_UPSTREAM} | awk '{ print $1 }')
 gomplate -f /opt/templates/CoreConfig.tpl -o ${COMMON_CONFIG_PATH}  # used by various scripts
@@ -17,6 +18,13 @@ gomplate -f /opt/templates/CoreConfig.tpl -o ${TAKCL_CORECONFIG_PATH}
 ln -sf ${TAKCL_CORECONFIG_PATH} ${TR}/CoreConfig.xml
 ls -lah ${TR}/CoreConfig.xml
 cat ${TR}/CoreConfig.xml
+
+echo "(Re-)Creating IgniteConfig"
+gomplate -f /opt/templates/TAKIgniteConfig.tpl -o ${IGNITE_CONFIG_PATH}
+ln -sf ${IGNITE_CONFIG_PATH} ${TR}/TAKIgniteConfig.xml
+ls -lah ${TR}/TAKIgniteConfig.xml
+cat ${TR}/TAKIgniteConfig.xml
+
 set +x
 
 # Ensure anything not having the correct config loads certs and saves logs to the volume
