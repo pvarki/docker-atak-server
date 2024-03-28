@@ -46,6 +46,26 @@ services:
       retries: 3
       start_period: 5s
 
+  takserver_config:
+    <<: *takbuildinfo
+    env_file:
+      - 'takserver.env'
+    depends_on:
+      takdb:
+        condition: service_healthy
+      takserver_messaging:
+        condition: service_healthy
+    volumes:
+      - takserver_data:/opt/tak/data
+    network_mode: "service:takserver_messaging"
+    command: ./opt/scripts/start-tak.sh config
+    healthcheck:
+      test: 'true'  # FIXME
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
   takserver_api:
     <<: *takbuildinfo
     env_file:
