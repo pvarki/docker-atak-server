@@ -50,7 +50,7 @@ if [ $1 = "messaging" ]; then
     java -jar -Xmx${MESSAGING_MAX_HEAP}m -Dspring.profiles.active=messaging,consolelog -Dkeystore.pkcs12.legacy takserver.war
 elif [ $1 = "config" ]; then
     echo "Starting TAK config"
-    java -jar -Xmx${CONFIG_MAX_HEAP}m -Dspring.profiles.active=config takserver.war &
+    java -jar -Xmx${CONFIG_MAX_HEAP}m -Dspring.profiles.active=config takserver.war
 elif [ $1 = "api" ]; then
     echo "Starting TAK API"
     java -jar -Xmx${API_MAX_HEAP}m -Dspring.profiles.active=api,consolelog -Dkeystore.pkcs12.legacy takserver.war
