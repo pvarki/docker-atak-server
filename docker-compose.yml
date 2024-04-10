@@ -33,11 +33,8 @@ services:
     networks:
       - taknet
     ports:
-      - '8443:8443'
-      - '8444:8444'
-      - '8446:8446'
       - '8089:8089'
-      - '8080:8080'
+      - '8443:8443'
     command: ./opt/scripts/start-tak.sh config
     healthcheck:
       test: 'true'  # FIXME

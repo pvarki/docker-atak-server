@@ -5,10 +5,13 @@
     <network multicastTTL="5">
         <input _name="stdssl" protocol="tls" port="8089" coreVersion="2"/>
 
-        <!-- web connectors -->
+        <!-- default web connectors
         <connector port="8443" _name="https"/>
         <connector port="8444" useFederationTruststore="true" _name="fed_https"/>
         <connector port="8446" clientAuth="false" _name="cert_https"/>
+        -->
+        <!-- Disable webtak and non-admin user interfaces -->
+        <connector port="8443" _name="https" enableWebtak="false" enableNonAdminUI="false" />
     </network>
     <auth>
         <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
