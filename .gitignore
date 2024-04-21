@@ -6,3 +6,4 @@ outputs
 takserver.env
 takdata
 takgov_assets/*.zip
+takgov_assets/*/

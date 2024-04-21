@@ -3,12 +3,15 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="/opt/tak/CoreConfig.xsd">
     <network multicastTTL="5">
-        <input _name="stdssl" protocol="tls" port="8089"/>
+        <input _name="stdssl" protocol="tls" port="8089" coreVersion="2"/>
 
-        <!-- web connectors -->
+        <!-- default web connectors
         <connector port="8443" _name="https"/>
         <connector port="8444" useFederationTruststore="true" _name="fed_https"/>
         <connector port="8446" clientAuth="false" _name="cert_https"/>
+        -->
+        <!-- Disable webtak and non-admin user interfaces -->
+        <connector port="8443" _name="https" enableWebtak="false" enableNonAdminUI="false" />
     </network>
     <auth>
         <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
@@ -45,7 +48,8 @@
 
 <!-- With  "Authority Information Access" included in certs this works for both 8089 and 8443 but I see no OCSP query for 8443 -->
     <security>
-        <tls keymanager="SunX509"
+        <tls context="TLSv1.2"
+            keymanager="SunX509"
             keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
             truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
             enableOCSP="true" responderUrl="http://{{.Env.TAK_OCSP_UPSTREAM_IP}}:{{.Env.TAK_OCSP_PORT}}"

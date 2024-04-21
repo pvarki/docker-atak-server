@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 
 FROM build-deps as checkout
 ARG REPO_URL="https://github.com/TAK-Product-Center/Server.git"
-ARG TAK_RELEASE="4.7-RELEASE-32"
+ARG TAK_RELEASE="5.0-RELEASE-30"
 WORKDIR /home/gradle/src
 RUN git clone --depth 1 --branch $TAK_RELEASE $REPO_URL \
     && true
@@ -41,8 +41,8 @@ RUN mkdir /jars \
     && ls -lah /jars /zips
 
 FROM alpine as takgov_files
-ARG TAK_VERSION="4.10"
-ARG TAK_RELEASE="12"
+ARG TAK_VERSION="5.0"
+ARG TAK_RELEASE="69"
 COPY takgov_assets/*${TAK_VERSION}-RELEASE-${TAK_RELEASE}.zip /zips/
 COPY takgov_assets/*${TAK_VERSION}-sdk.zip /zips/
 CMD ["cp", "-r", "/zips/",  "/output/"]
