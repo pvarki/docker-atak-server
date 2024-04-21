@@ -49,11 +49,11 @@ services:
         TAK_RELEASE: "69"
 
   v510:
-    image: pvarki/tak-server-dist:5.1-RELEASE-8
+    image: pvarki/tak-server-dist:5.1-RELEASE-11
     build:
       context: .
       dockerfile: Dockerfile_build
       target: takgov_files
       args:
         TAK_VERSION: "5.1"
-        TAK_RELEASE: "8"
+        TAK_RELEASE: "11"
