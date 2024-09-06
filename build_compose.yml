@@ -1,5 +1,3 @@
-version: '3.4'
-
 services:
   v47:
     image: pvarki/tak-server-dist:4.7-RELEASE-44

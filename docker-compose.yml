@@ -1,5 +1,3 @@
-version: '3.4'
-
 x-takbuilds: &takbuildinfo
   image: "pvarki/takserver:${TAK_RELEASE:-5.2-RELEASE-30}${DOCKER_TAG_EXTRA:-}"
   build:
