@@ -1,4 +1,4 @@
-FROM gradle:jdk11-jammy as build-deps
+FROM gradle:jdk11-jammy AS build-deps
 ENV \
   # locale
   LC_ALL=C.UTF-8
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     && true
 
 
-FROM build-deps as checkout
+FROM build-deps AS checkout
 ARG REPO_URL="https://github.com/TAK-Product-Center/Server.git"
 ARG TAK_RELEASE="5.0-RELEASE-30"
 WORKDIR /home/gradle/src
@@ -21,33 +21,33 @@ RUN git clone --depth 1 --branch $TAK_RELEASE $REPO_URL \
     && true
 
 
-FROM checkout as build-jars
+FROM checkout AS build-jars
 RUN cd Server/src \
     && ./gradlew clean bootWar bootJar shadowJar \
     && true
 
 
-FROM build-jars as build-dockers
+FROM build-jars AS build-dockers
 RUN cd Server/src \
     && ./gradlew buildDocker buildFullDocker buildHardenedDocker \
     && true
 
 
-FROM build-dockers as output
+FROM build-dockers AS output
 RUN mkdir /jars \
     && mkdir /zips \
     && find . -type f -name '*RELEASE*.jar' -exec mv {} /jars/ \; \
     && find . -type f -name '*-docker-*.zip' -exec mv {} /zips/ \; \
     && ls -lah /jars /zips
 
-FROM alpine as takgov_files
+FROM alpine AS takgov_files
 ARG TAK_VERSION="5.0"
 ARG TAK_RELEASE="69"
 COPY takgov_assets/*${TAK_VERSION}-RELEASE-${TAK_RELEASE}.zip /zips/
 COPY takgov_assets/*${TAK_VERSION}-sdk.zip /zips/
 CMD ["cp", "-r", "/zips/",  "/output/"]
 
-FROM alpine as files
+FROM alpine AS files
 COPY --from=output /jars /jars
 COPY --from=output /zips /zips
 CMD ["cp", "-r", "/jars/", "/zips/",  "/output/"]
