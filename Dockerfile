@@ -3,11 +3,11 @@
 # So work around like this                                             #
 ########################################################################
 ARG TEMURIN_VERSION="17"
-ARG TAK_RELEASE="5.1-RELEASE-11"
-FROM pvarki/tak-server-dist:$TAK_RELEASE as tak-files
+ARG TAK_RELEASE="5.2-RELEASE-30"
+FROM pvarki/tak-server-dist:$TAK_RELEASE AS tak-files
 RUN mv /zips/takserver-docker-*.zip /tmp/takserver.zip
 
-FROM eclipse-temurin:${TEMURIN_VERSION}-jammy as deps
+FROM eclipse-temurin:${TEMURIN_VERSION}-jammy AS deps
 ENV \
   LC_ALL=C.UTF-8
 RUN apt-get update && apt-get install -y \
@@ -35,7 +35,7 @@ COPY --from=hairyhenderson/gomplate:stable /gomplate /bin/gomplate
 SHELL ["/bin/bash", "-lc"]
 
 
-FROM deps as install
+FROM deps AS install
 COPY docker/entrypoint.sh /entrypoint.sh
 COPY --from=tak-files /tmp/takserver.zip /tmp/takserver.zip
 RUN cd /tmp \
@@ -47,5 +47,5 @@ RUN cd /tmp \
 COPY scripts /opt/scripts
 COPY templates /opt/templates
 
-FROM install as run
+FROM install AS run
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
