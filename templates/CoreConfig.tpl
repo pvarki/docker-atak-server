@@ -13,9 +13,26 @@
         <!-- Disable webtak and non-admin user interfaces -->
         <connector port="8443" _name="https" enableWebtak="false" enableNonAdminUI="false" />
     </network>
-    <auth>
+{{if getenv "LDAP_BIND_PASSWORD" ""}}
+    <auth default="ldap" x509groups="true" x509addAnonymous="false">
+        <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
+        <ldap url="{{getenv "LDAP_URL" "ldap://openldap:1389"}}"
+              updateinterval="60"
+              userstring="uid={username},ou=users,dc=example,dc=org"
+              style="DS"
+              ldapSecurityType="simple"
+              serviceAccountDN="cn={{getenv "LDAP_BIND_USER" "admin"}},dc=example,dc=org"
+              serviceAccountCredential="{{getenv "LDAP_BIND_PASSWORD" ""}}"
+              groupBaseRDN="ou=groups,dc=example,dc=org"
+              groupObjectClass="groupOfNames"
+              groupNameExtractorRegex="CN=(.?)(?:,|$)"
+        />
+    </auth>
+{{else}}
+    <auth x509groups="true" x509addAnonymous="false">
         <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
     </auth>
+{{end}}
     <submission ignoreStaleMessages="false" validateXml="false"/>
 
     <subscription reloadPersistent="false">
