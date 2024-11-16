@@ -25,7 +25,7 @@
               serviceAccountCredential="{{getenv "LDAP_BIND_PASSWORD" ""}}"
               groupBaseRDN="ou=groups,dc=example,dc=org"
               groupObjectClass="groupOfNames"
-              groupNameExtractorRegex="CN=(.?)(?:,|$)"
+              groupNameExtractorRegex="(?:cn|CN)=(.+?),"
         />
     </auth>
 {{else}}
