@@ -11,7 +11,7 @@
         <connector port="8446" clientAuth="false" _name="cert_https"/>
         -->
         <!-- Disable webtak and non-admin user interfaces -->
-        <connector port="8443" _name="https" enableWebtak="false" enableNonAdminUI="false" />
+        <connector port="8443" _name="https" enableWebtak="{{getenv "WEBTAK_ENABLE" "false"}}" enableNonAdminUI="false" />
     </network>
 {{if getenv "LDAP_BIND_PASSWORD" ""}}
     <auth default="ldap" x509groups="true" x509addAnonymous="false">
