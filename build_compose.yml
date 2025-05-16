@@ -75,3 +75,13 @@ services:
       args:
         TAK_VERSION: "5.3"
         TAK_RELEASE: "24"
+
+  v540:
+    image: pvarki/tak-server-dist:5.4-RELEASE-19
+    build:
+      context: .
+      dockerfile: Dockerfile_build
+      target: takgov_files
+      args:
+        TAK_VERSION: "5.4"
+        TAK_RELEASE: "19"
