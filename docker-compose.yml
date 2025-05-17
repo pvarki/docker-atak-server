@@ -76,6 +76,7 @@ services:
         condition: service_healthy
     volumes:
       - takserver_data:/opt/tak/data
+      - ./update:/opt/tak/webcontent/update
     network_mode: "service:takserver_messaging"
     command: ./opt/scripts/start-tak.sh api
     healthcheck:
