@@ -7,5 +7,6 @@ cd ${TR}
 . ./setenv.sh
 
 
+set -x
 TAKCL_CORECONFIG_PATH="${CONFIG}" java -jar /opt/tak/utils/UserManager.jar certmod -g revoked "/opt/tak/data/certs/files/${USER_CERT_NAME}.pem"
 #TAKCL_CORECONFIG_PATH="${CONFIG}" java -jar /opt/tak/utils/UserManager.jar certmod -D "/opt/tak/data/certs/files/${USER_CERT_NAME}.pem"
