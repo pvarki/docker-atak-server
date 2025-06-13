@@ -10,7 +10,6 @@ sleep 2
 # (re-)Create config
 echo "(Re-)Creating CoreConfig"
 set -x
-export TAK_OCSP_UPSTREAM_IP=$(getent hosts ${TAK_OCSP_UPSTREAM} | awk '{ print $1 }')
 gomplate -f /opt/templates/CoreConfig.tpl -o ${COMMON_CONFIG_PATH}  # used by various scripts
 # Process specific config
 gomplate -f /opt/templates/CoreConfig.tpl -o ${TAKCL_CORECONFIG_PATH}

@@ -64,42 +64,12 @@
         <queue/>
     </buffer>
 
-<!-- With  "Authority Information Access" included in certs this works for both 8089 and 8443 but I see no OCSP query for 8443 -->
     <security>
         <tls context="TLSv1.2"
             keymanager="SunX509"
             keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
             truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
-            enableOCSP="true" responderUrl="http://{{.Env.TAK_OCSP_UPSTREAM_IP}}:{{.Env.TAK_OCSP_PORT}}"
+            enableOCSP="{{getenv "TAK_OCSP_ENABLE" "false"}}"
             />
     </security>
-
-<!-- 8089 works (until CRL expires) but 8443 doesn't, there is no sane way to refresh the CRL (process restart is way too slow)
-     and I see *no* queries to OCSP server -->
-<!--
-    <security>
-        <tls keymanager="SunX509"
-            keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
-            truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
-            enableOCSP="true" responderUrl="http://{{.Env.TAK_OCSP_UPSTREAM_IP}}:{{.Env.TAK_OCSP_PORT}}"
-            >
-            <crl _name="ROOT CA" crlFile="/ca_public/crl_root.pem"/>
-            <crl _name="RASENMAEHER CA" crlFile="/ca_public/crl_intermediate.pem"/>
-        </tls>
-    </security>
--->
-
-<!-- in both of the above cases we get: [services-deployment-worker-#57%ignite-takserver%] WARN com.bbn.marti.service.SSLConfig - TLS enabled, but no certificate revocation lists, and OSCP is not enabled in Core Config!
-     however in the below case we get similar complaint a *second* time when the 8089 port actually starts serving -->
-
-<!-- 8089 and 8443 work but obviously revocation checks do not work -->
-<!--
-    <security>
-        <tls keymanager="SunX509"
-            keystore="JKS" keystoreFile="/opt/tak/data/certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}"
-            truststore="JKS" truststoreFile="/opt/tak/data/certs/files/truststore-root.jks" truststorePass="{{.Env.CA_PASS}}"
-            />
-    </security>
--->
-
 </Configuration>
