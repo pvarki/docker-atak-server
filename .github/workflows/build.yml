@@ -64,8 +64,10 @@ jobs:
           cat ${GITHUB_ENV}
       - name: Build takinit
         run: |
+          cp takserver.env.example takserver.env
           docker compose build takserver_initialization
       - name: push takinit
         if: ${{ !env.ACT }}
         run: |
+          cp takserver.env.example takserver.env
           docker compose push takserver_initialization
