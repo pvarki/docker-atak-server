@@ -1,5 +1,9 @@
 on:
     pull_request:
+    push:
+      branches:
+        - main
+    workflow_dispatch:  # Allow manual triggering
 
 jobs:
   test:
@@ -12,7 +16,7 @@ jobs:
       matrix:
         python-version: ["3.11"] # , "3.12"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: install dependencies
@@ -26,4 +30,44 @@ jobs:
           export SKIP=no-commit-to-branch
           cp takserver.env.example takserver.env
           pre-commit run --all-files
-# TODO: Check that compositions meant for purely local development build
+      - name: Build takinit
+        run: |
+          docker compose build takserver_initialization
+
+
+  build_and_publish:
+    runs-on: ubuntu-latest
+    needs: [test]
+    strategy:
+      matrix:
+        extra_env: ["none", "date"]
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Fix ref slashes
+        run: |
+          echo REF_NO_SLASHES=$(echo "${{ github.ref_name }}" | sed 's/\//-/g') >> ${GITHUB_ENV}
+      - name: Set DOCKER_TAG_EXTRA if date
+        run: |
+          test "${{ matrix.extra_env }}" = "date" && echo "DOCKER_TAG_EXTRA=-$(date +%Y%m%d)" >> ${GITHUB_ENV} || true
+          cat ${GITHUB_ENV}
+      - name: Set DOCKER_TAG_EXTRA if not main
+        if: github.event.pull_request.merged != true
+        run: |
+          test "${{ github.ref }}" = "refs/heads/main" || echo "DOCKER_TAG_EXTRA=-$REF_NO_SLASHES" >> ${GITHUB_ENV}
+          cat ${GITHUB_ENV}
+      - name: Build takinit
+        run: |
+          cp takserver.env.example takserver.env
+          docker compose build takserver_initialization
+      - name: push takinit
+        if: ${{ !env.ACT }}
+        run: |
+          cp takserver.env.example takserver.env
+          docker compose push takserver_initialization

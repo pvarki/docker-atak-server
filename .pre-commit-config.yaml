@@ -2,9 +2,18 @@
 # See https://pre-commit.com/hooks.html for more hooks
 default_language_version:
     python: python3
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
 repos:
+-   repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.2.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.1.0
+    rev: v6.0.0
     hooks:
     -   id: no-commit-to-branch
     -   id: check-executables-have-shebangs
@@ -24,13 +33,13 @@ repos:
         args:
         - --autofix
 -   repo: https://github.com/IamTheFij/docker-pre-commit.git
-    rev: v2.1.1
+    rev: v3.0.1
     hooks:
     -   id: docker-compose-check
         files: "docker-compose.*.yml"
         exclude: ".*.tpl"
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.1.13
+    rev: v1.5.5
     hooks:
     -   id: forbid-crlf
         exclude: ".*.sql"
@@ -45,9 +54,14 @@ repos:
     hooks:
     -   id: rst-linter
 -   repo: https://github.com/Yelp/detect-secrets
-    rev: v1.2.0
+    rev: v1.5.0
     hooks:
     -   id: detect-secrets
         language: system
         exclude: "poetry.lock"
         # args: ['--baseline', '.secrets.baseline']
+-   repo: https://github.com/rhysd/actionlint
+    rev: "v1.7.7"
+    hooks:
+        - id: actionlint
+          args: ["-shellcheck", "''"]
