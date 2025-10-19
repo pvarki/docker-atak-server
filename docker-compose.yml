@@ -4,7 +4,7 @@ x-takbuilds: &takbuildinfo
     context: .
     dockerfile: Dockerfile
     args:
-        TAK_RELEASE: ${TAK_RELEASE:-5.5-RELEASE-53}
+        TAK_RELEASE: ${TAK_RELEASE:-5.5-RELEASE-58}
 
 services:
 

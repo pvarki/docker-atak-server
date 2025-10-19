@@ -87,11 +87,11 @@ services:
         TAK_RELEASE: "19"
 
   v550:
-    image: pvarki/tak-server-dist:5.5-RELEASE-53
+    image: pvarki/tak-server-dist:5.5-RELEASE-58
     build:
       context: .
       dockerfile: Dockerfile_build
       target: takgov_files
       args:
         TAK_VERSION: "5.5"
-        TAK_RELEASE: "53"
+        TAK_RELEASE: "58"
