@@ -45,3 +45,21 @@ services:
       target: files
       args:
         TAK_VERSION: "5.0-RELEASE-30"
+
+  v510:
+    image: pvarki/tak-server-oss-dist:5.1-RELEASE-8
+    build:
+      context: .
+      dockerfile: Dockerfile_build
+      target: files
+      args:
+        TAK_VERSION: "5.1-RELEASE-8"
+
+  v520:
+    image: pvarki/tak-server-oss-dist:5.2-RELEASE-16
+    build:
+      context: .
+      dockerfile: Dockerfile_build
+      target: files
+      args:
+        TAK_VERSION: "5.2-RELEASE-16"
