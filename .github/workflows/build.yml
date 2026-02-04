@@ -33,6 +33,7 @@ jobs:
           pre-commit run --all-files
       - name: Build takinit
         run: |
+          export COMPOSE_BAKE=true
           docker compose build takserver_initialization
 
 
