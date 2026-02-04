@@ -77,7 +77,7 @@ jobs:
           cat ${GITHUB_ENV}
       - name: Generate bakefile
         run: |
-          source example_env.sh
+          cp takserver.env.example takserver.env
           docker compose ${{ matrix.compose_extra }} config --format json | .github/compose2bake_variants.py >bakefile.hcl
       - name: Build
         run: |
