@@ -43,9 +43,6 @@ jobs:
     env:
       PVARKI_DOCKER_REPO: ghcr.io/
       ACR_REPO: ${{ vars.ACR_REPO }}
-    strategy:
-      matrix:
-        compose_extra: ["", "-f docker-compose-local.yml"]
     steps:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -78,7 +75,7 @@ jobs:
       - name: Generate bakefile
         run: |
           cp takserver.env.example takserver.env
-          docker compose ${{ matrix.compose_extra }} config --format json | .github/compose2bake_variants.py >bakefile.hcl
+          docker compose config --format json | .github/compose2bake_variants.py >bakefile.hcl
       - name: Build
         run: |
           docker buildx bake -f bakefile.hcl --pull --load takserver_initialization
