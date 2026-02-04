@@ -27,6 +27,7 @@ jobs:
       - name: pre-commit
         id: pre_commit
         run: |
+          export PATH=$PATH:/home/runner/.local/bin
           export SKIP=no-commit-to-branch
           cp takserver.env.example takserver.env
           pre-commit run --all-files
