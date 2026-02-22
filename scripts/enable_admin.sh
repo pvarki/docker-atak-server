@@ -10,4 +10,4 @@ WAITFORIT_TIMEOUT=2 /usr/bin/wait-for-it.sh localhost:8089 -- true
 
 echo "enable_admin: Making sure ${ADMIN_CERT_NAME} user is in place"
 set -x
-TAKCL_CORECONFIG_PATH="${CONFIG}" java -jar /opt/tak/utils/UserManager.jar certmod -A -g default "/opt/tak/data/certs/files/${ADMIN_CERT_NAME}.pem"
+TAKCL_CORECONFIG_PATH="${CONFIG}" java -jar /opt/tak/utils/UserManager.jar certmod -A "/opt/tak/data/certs/files/${ADMIN_CERT_NAME}.pem"
