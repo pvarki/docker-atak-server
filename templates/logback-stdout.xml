@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.JsonEncoder"/>
+    </appender>
+
+    <!-- =========================================================
+         AUDIT LOGGERS
+         Requires CoreConfig.tpl: <logging auditLoggingEnabled="true" httpAccessEnabled="true"/>
+         MDC fields included automatically by JsonEncoder:
+           username, roles, source-ip, session, method,
+           request-body, response-status, response-body
+         ========================================================= -->
+
+    <!-- HTTP audit: full request context per API call -->
+    <logger name="com.bbn.marti.util.spring.MissionRoleAssignmentRequestHolderFilterBean" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <!-- HTTP access: one line per request -->
+    <logger name="http_access_logger" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <!-- Security violations (ESAPI intrusion detection) -->
+    <logger name="IntrusionDetector" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <!-- SQL audit: disabled by default - extremely verbose (every query).
+         Enable only for targeted debugging by setting level to TRACE.
+    <logger name="data-access-log" level="TRACE" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    -->
+
+    <!-- =========================================================
+         NOISE SUPPRESSION
+         Preserved from bundled logback-spring.xml (takserver.war)
+         and logback.xml (takserver-retention.jar, takserver-pm.jar)
+         ========================================================= -->
+
+    <!-- Ignite: suppress everything below ERROR across all services -->
+    <logger name="org.apache.ignite" level="ERROR"/>
+
+    <!-- Spring -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.web.socket.config.WebSocketMessageBrokerStats" level="OFF"/>
+    <logger name="org.springframework.security.config.http.FilterInvocationSecurityMetadataSourceParser" level="OFF"/>
+    <logger name="org.springframework.boot.autoconfigure.orm.jpa" level="OFF"/>
+    <logger name="org.springframework.boot.actuate.endpoint.EndpointId" level="OFF"/>
+    <logger name="org.springframework.http" level="OFF"/>
+    <logger name="org.springframework.web" level="OFF"/>
+    <logger name="org.springframework.core" level="OFF"/>
+    <logger name="org.springframework.security.core.SpringSecurityCoreVersion" level="OFF"/>
+
+    <!-- Hibernate -->
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
+    <logger name="org.hibernate.SQL" level="WARN" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+    <logger name="org.hibernate.type" level="WARN" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <!-- Tomcat -->
+    <logger name="org.apache.tomcat.util.net.NioEndpoint" level="OFF"/>
+    <logger name="org.apache.tomcat.util.net" level="OFF"/>
+    <logger name="org.apache" level="WARN"/>
+
+    <!-- gRPC -->
+    <logger name="io.grpc.internal.SerializingExecutor" level="OFF"/>
+
+    <!-- Swagger/SpringFox -->
+    <logger name="springfox" level="OFF"/>
+
+    <!-- Connection pool -->
+    <logger name="com.zaxxer" level="WARN"/>
+
+    <!-- TAK internal: suppress noisy data access audit wrapper -->
+    <logger name="data-access-log" level="OFF"/>
+
+    <!-- TAK internal: reduce noise from large upload servlet -->
+    <logger name="com.bbn.marti.sync.MissionPackageUploadServlet" level="WARN"/>
+
+    <!-- =========================================================
+         SIGNAL LOGGERS
+         Keep these visible so startup and health are observable
+         ========================================================= -->
+    <logger name="tak.server.ServerConfiguration" level="INFO"/>
+    <logger name="org.springframework.boot.web.embedded.tomcat.TomcatWebServer" level="INFO"/>
+    <logger name="metrics-logger" level="INFO"/>
+
+    <!-- =========================================================
+         ROOT
+         ========================================================= -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

@@ -72,4 +72,11 @@
             enableOCSP="{{getenv "TAK_OCSP_ENABLE" "false"}}"
             />
     </security>
+
+    <logging
+        auditLoggingEnabled="true"
+        httpAccessEnabled="true"
+        jsonFormatEnabled="true"
+    />
+
 </Configuration>
