@@ -10,17 +10,18 @@ tldr::
     docker compose pull --include-deps --ignore-pull-failures
     docker compose -p tak up -d
 
-or use docker compose.local.yml without gomplate for local dev (rebuilding containers)::
+
+or if you want to first build locally to test changes use the compose build so that the local image is used instead:
 
     export DOCKER_TAG_EXTRA="-dev"
-    docker build --no-cache --progress=plain -t takserver:latest${DOCKER_TAG_EXTRA} -t takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA} -t pvarki/takserver:4.7-RELEASE-32${DOCKER_TAG_EXTRA} .
+    docker compose -f docker-compose.yml -p tak build
     cp takserver.env.example takserver.env
     # edit the env
-    docker compose -f docker-compose.local.yml -p tak up
+    docker compose -f docker-compose.yml -p tak up
 
 Note, for things that live in the volumes (like TAK certs) you must nuke the volumes to see changes::
 
-    docker compose -f docker-compose.local.yml -p tak down -v ; docker compose -f docker-compose.local.yml -p tak rm -vf
+    docker compose -f docker-compose.yml -p tak down -v ; docker compose -f docker-compose.yml -p tak rm -vf
 
 
 
