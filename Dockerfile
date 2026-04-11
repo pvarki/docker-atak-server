@@ -7,13 +7,13 @@ ARG TAK_RELEASE="5.5-RELEASE-58"
 FROM pvarki/tak-server-dist:$TAK_RELEASE AS tak-files
 RUN mv /zips/takserver-docker-*.zip /tmp/takserver.zip
 
-FROM eclipse-temurin:${TEMURIN_VERSION}-jammy AS deps
+FROM eclipse-temurin:${TEMURIN_VERSION}-noble AS deps
 ENV \
   LC_ALL=C.UTF-8
 RUN apt-get update && apt-get install -y \
       emacs-nox \
       net-tools \
-      netcat \
+      netcat-traditional \
       vim \
       nmon \
       python3-lxml \
