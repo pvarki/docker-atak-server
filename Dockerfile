@@ -13,7 +13,7 @@ ENV \
 RUN apt-get update && apt-get install -y \
       emacs-nox \
       net-tools \
-      netcat \
+      netcat-traditional \
       vim \
       nmon \
       python3-lxml \
