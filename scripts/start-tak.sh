@@ -24,6 +24,9 @@ ln -sf ${IGNITE_CONFIG_PATH} ${TR}/TAKIgniteConfig.xml
 ls -lah ${TR}/TAKIgniteConfig.xml
 cat ${TR}/TAKIgniteConfig.xml
 
+echo "Ensuring our logging config is in place (Logback)"
+cp /opt/templates/logback-stdout.xml /opt/tak/
+
 set +x
 
 # Ensure anything not having the correct config loads certs and saves logs to the volume
