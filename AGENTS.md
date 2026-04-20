@@ -59,7 +59,7 @@ docker run --rm -it -v $(pwd)/outputs:/output atakbuild:files
 
 ## Code Conventions
 - Environment variables: `TAKSERVER_*` and `TAK_*` prefixes
-- Certificate passwords: `TAKSERVER_CERT_PASS` (JKS), `TAK_CA_PASS` (CA JKS)
+- Certificate passwords: `TAKSERVER_CERT_PASS` (JKS), `TAK_CA_PASS` (CA JKS)  <!-- pragma: allowlist secret -->
 - All TAK configuration lives in volumes — do not bake config into the image
 
 ## Architecture Notes
