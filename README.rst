@@ -61,3 +61,13 @@ Build the distribution::
     docker run --rm -it -v `pwd`/outputs:/output atakbuild:files
 
 Now you have the build artefacts in outputs -directory.
+
+
+Versioning
+^^^^^^^^^^
+
+Versioning is handled with bump-my-version_. To increment, use ``bump-my-version bump <patch/minor/major>``.
+
+You can use ``bump-my-version show-bump`` to see how each option would affect the version.
+
+.. _bump-my-version: https://github.com/callowayproject/bump-my-version
