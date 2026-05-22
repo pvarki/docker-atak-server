@@ -60,8 +60,10 @@
     </filter>
 
     <buffer>
+        <queue enableStoreForwardChat="true">
+            <priority/>
+        </queue>
         <latestSA enable="true"/>
-        <queue/>
     </buffer>
 
     <security>
@@ -72,6 +74,19 @@
             enableOCSP="{{getenv "TAK_OCSP_ENABLE" "false"}}"
             />
     </security>
+
+    <federation allowFederatedDelete="false" allowMissionFederation="true" allowDataFeedFederation="true" enableMissionFederationDisruptionTolerance="true" missionFederationDisruptionToleranceRecencySeconds="43200" enableFederation="true" enableDataPackageAndMissionFileFilter="false">
+        <federation-server port="9000" coreVersion="2" v1enabled="false" v2port="9001" v2enabled="true" webBaseUrl="https://{{.env.tak_server_address}}:8443/Marti">
+            <tls keystore="JKS" keystoreFile="certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}" truststore="JKS" truststoreFile="certs/files/fed-truststore.jks" truststorePass="{{.Env.CA_PASS}}" context="TLSv1.2" keymanager="SunX509"/>
+            <federation-port port="9000" tlsVersion="TLSv1.2"/>
+            <v1Tls tlsVersion="TLSv1.2"/>
+            <v1Tls tlsVersion="TLSv1.3"/>
+            <federation-token-authentication enabled="true" tls="true" port="9002"/>
+        </federation-server>
+        <fileFilter>
+            <fileExtension>pref</fileExtension>
+        </fileFilter>
+    </federation>
 
     <logging
         auditLoggingEnabled="true"
