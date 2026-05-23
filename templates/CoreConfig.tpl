@@ -14,8 +14,9 @@
         <connector port="8443" _name="https" enableWebtak="{{getenv "WEBTAK_ENABLE" "false"}}" enableNonAdminUI="false" />
     </network>
 {{if getenv "LDAP_BIND_PASSWORD" ""}}
+<!--
     <auth default="ldap" x509groups="true" x509addAnonymous="false">
-        <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
+        <File location="/opt/tak/data/UserAuthenticationFile.xml" />
         <ldap url="{{getenv "LDAP_URL" "ldap://openldap:1389"}}"
               updateinterval="60"
               userstring="uid={username},ou=users,dc=example,dc=org"
@@ -29,6 +30,35 @@
               groupprefix="CN=tak_"
         />
     </auth>
+-->
+<auth default="ldap" x509groups="true" x509addAnonymous="false">
+
+     <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
+
+     <ldap url="ldaps://idm.localmaeher.dev.pvarki.fi:636"
+     userstring="spn={username}@idm.localmaeher.dev.pvarki.fi,o=kanidm"
+     updateinterval="60"
+     groupprefix="spn=tak_"
+     groupNameExtractorRegex="spn=(?:tak_)?([^,@]+)"
+     style="DS"
+     ldapSecurityType="simple"
+     serviceAccountDN="dn=token"
+     serviceAccountCredential="eyJhbGciOiJFUzI1NiIsImtpZCI6IjkzMTJmZjRhYzcxODNkYzA5NjM4Y2QzZWE4YjM5MTQwIn0.eyJhY2NvdW50X2lkIjoiOGMzMTU3ZGEtMjRiYy00ZWUxLWEzNTUtMzc0NTZhNGVhM2E3IiwidG9rZW5faWQiOiI3OTcxNmYyZi02NGIxLTQ3ZmQtODFjOS1kNGRlZWZhNDQ3NjQiLCJsYWJlbCI6IkFQSSBUb2tlbiIsImV4cGlyeSI6bnVsbCwiaXNzdWVkX2F0IjoxNzc5NDY4OTUzLCJwdXJwb3NlIjoicmVhZG9ubHkifQ.40Da8jsMLXr62pceWYSoKw1ahvevLBpFTCtF87CQGfTG6ff_Im_z_mPY1cTLgX3qA6P0NJ3HNVEtIOY3tY-FHg"
+    
+     groupObjectClass="memberOf"
+     groupBaseRDN="o=kanidm"
+     
+     readGroupSuffix="_read"
+     writeGroupSuffix="_write"
+     
+     ldapsTruststore="JKS"
+     ldapsTruststoreFile="/opt/tak/data/certs/files/truststore-root.jks"
+     ldapsTruststorePass="takcacertpw"
+     />
+
+
+</auth>
+
 {{else}}
     <auth x509groups="true" x509addAnonymous="false">
         <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
