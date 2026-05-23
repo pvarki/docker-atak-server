@@ -3,7 +3,7 @@ on:
     workflow_dispatch:
 
 env:
-  TAK_RELEASE: 5.7-RELEASE-8
+  TAK_RELEASE: 5.7-RELEASE-32
 
 jobs:
   checks:
