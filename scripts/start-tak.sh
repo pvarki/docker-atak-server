@@ -7,6 +7,15 @@ COMMON_CONFIG_PATH=${TR}/data/CoreConfig.xml  # common path used by various scri
 IGNITE_CONFIG_PATH=${TR}/data/TAKIgniteConfig.xml  # This should be same for everyone
 sleep 2
 
+# Resolve our magic names to docker internal ip, this is also done in takintegration (takrmapi)
+GW_IP=$(getent ahostsv4 host.docker.internal | grep RAW | awk '{ print $1 }')
+echo "GW_IP=$GW_IP"
+grep -v -F -e "localmaeher"  -- /etc/hosts >/etc/hosts.new && cat /etc/hosts.new >/etc/hosts
+echo "$GW_IP localmaeher.dev.pvarki.fi mtls.localmaeher.dev.pvarki.fi idm.localmaeher.dev.pvarki.fi" >>/etc/hosts
+echo "*** BEGIN /etc/hosts ***"
+cat /etc/hosts
+echo "*** END /etc/hosts ***"
+
 # (re-)Create config
 echo "(Re-)Creating CoreConfig"
 set -x
