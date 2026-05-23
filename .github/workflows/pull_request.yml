@@ -29,7 +29,7 @@ jobs:
         run: | # pragma: allowlist secret
           docker compose build --progress plain takserver_initialization
           export POSTGRES_PASSWORD=cidockerpgpass  # pragma: allowlist secret
-          docker compose up takserver_config -d --wait || docker compose logs
+          docker compose up takserver_config -d --wait || (docker compose logs && exit 1)
           test $(docker inspect --format "{{json .State.Health.Status }}" takserver-takserver_config-1) = '"healthy"'
           docker compose down -v
 
