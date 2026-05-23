@@ -3,11 +3,11 @@ on:
     workflow_dispatch:
 
 env:
-  TAK_RELEASE: 5.7-RELEASE-8
+  TAK_RELEASE: 5.7-RELEASE-32
 
 jobs:
   checks:
-    runs-on: ubuntu-latest
+    runs-on: arc-runner-set
     permissions:
       contents: read
       pull-requests: write
@@ -26,9 +26,38 @@ jobs:
       - name: Validate bumpversion
         uses: pvarki/config-ci-library/.github/actions/validate-bumpversion@main
 
+
+  compose_validations:
+    runs-on: arc-runner-set
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: validate coreconfig
+        run: | # pragma: allowlist secret
+          docker compose build --progress plain takserver_initialization
+          cp takserver.env.example takserver.env
+          sed -i.bup s/^POSTGRES_PASSWORD=/POSTGRES_PASSWORD=cipgpass/ takserver.env
+          sed -i.bup s/^TAKSERVER_CERT_PASS=/TAKSERVER_CERT_PASS=citakpass/ takserver.env
+          sed -i.bup s/^COUNTRY=/COUNTRY=FI/ takserver.env
+          sed -i.bup s/^CA_NAME=/CA_NAME=CICA/ takserver.env
+          sed -i.bup s/^CA_PASS=/CA_PASS=cicapw/ takserver.env
+          sed -i.bup s/^ORGANIZATION=/ORGANIZATION=Takists/ takserver.env
+          sed -i.bup s/^ORGANIZATIONAL_UNIT=/ORGANIZATIONAL_UNIT=CI/ takserver.env
+          sed -i.bup s/^STATE=/STATE=CI/ takserver.env
+          sed -i.bup s/^CITY=/CITY=CIty/ takserver.env
+          docker compose -p takserver up takserver_config -d --wait || (docker compose logs && exit 1)
+          test $(docker inspect --format "{{json .State.Health.Status }}" takserver-takserver_config-1) = '"healthy"'
+          docker compose down -v
+
   build_and_publish:
-    runs-on: ubuntu-latest
-    needs: [checks]
+    runs-on: arc-runner-set
+    needs: [checks, compose_validations]
     permissions:
       contents: read
       packages: write
