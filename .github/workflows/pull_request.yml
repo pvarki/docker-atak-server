@@ -25,6 +25,13 @@ jobs:
           SKIP: no-commit-to-branch
       - name: Validate bumpversion
         uses: pvarki/config-ci-library/.github/actions/validate-bumpversion@main
+      - name: validate coreconfig
+        run: |
+          docker compose build --progress plain takserver_initialization
+          docker compose up takserver_config -d --wait || docker compose logs
+          test $(docker inspect --format "{{json .State.Health.Status }}" takserver-takserver_config-1) = '"healthy"'
+          docker compose down -v
+
 
   build_and_publish:
     runs-on: ubuntu-latest
