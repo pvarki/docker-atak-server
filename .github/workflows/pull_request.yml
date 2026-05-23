@@ -41,7 +41,8 @@ jobs:
       - name: validate coreconfig
         run: | # pragma: allowlist secret
           docker compose build --progress plain takserver_initialization
-          export POSTGRES_PASSWORD=cidockerpgpass  # pragma: allowlist secret
+          cp takserver.env.example takserver.env
+          sed -i.bup s/^POSTGRES_PASSWORD=/POSTGRES_PASSWORD=cipgpass/ takserver.env
           docker compose up takserver_config -d --wait || (docker compose logs && exit 1)
           test $(docker inspect --format "{{json .State.Health.Status }}" takserver-takserver_config-1) = '"healthy"'
           docker compose down -v
