@@ -51,7 +51,7 @@ jobs:
           sed -i.bup s/^ORGANIZATIONAL_UNIT=/ORGANIZATIONAL_UNIT=CI/ takserver.env
           sed -i.bup s/^STATE=/STATE=CI/ takserver.env
           sed -i.bup s/^CITY=/CITY=CIty/ takserver.env
-          docker compose up takserver_config -d --wait || (docker compose logs && exit 1)
+          docker compose -p takserver up takserver_config -d --wait || (docker compose logs && exit 1)
           test $(docker inspect --format "{{json .State.Health.Status }}" takserver-takserver_config-1) = '"healthy"'
           docker compose down -v
 
