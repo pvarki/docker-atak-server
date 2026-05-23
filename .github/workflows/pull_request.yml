@@ -43,6 +43,14 @@ jobs:
           docker compose build --progress plain takserver_initialization
           cp takserver.env.example takserver.env
           sed -i.bup s/^POSTGRES_PASSWORD=/POSTGRES_PASSWORD=cipgpass/ takserver.env
+          sed -i.bup s/^TAKSERVER_CERT_PASS=/TAKSERVER_CERT_PASS=citakpass/ takserver.env
+          sed -i.bup s/^COUNTRY=/COUNTRY=FI/ takserver.env
+          sed -i.bup s/^CA_NAME=/CA_NAME=CICA/ takserver.env
+          sed -i.bup s/^CA_PASS=/CA_PASS=cicapw/ takserver.env
+          sed -i.bup s/^ORGANIZATION=/ORGANIZATION=Takists/ takserver.env
+          sed -i.bup s/^ORGANIZATIONAL_UNIT=/ORGANIZATIONAL_UNIT=CI/ takserver.env
+          sed -i.bup s/^STATE=/STATE=CI/ takserver.env
+          sed -i.bup s/^CITY=/CITY=CIty/ takserver.env
           docker compose up takserver_config -d --wait || (docker compose logs && exit 1)
           test $(docker inspect --format "{{json .State.Health.Status }}" takserver-takserver_config-1) = '"healthy"'
           docker compose down -v
