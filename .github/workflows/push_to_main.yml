@@ -41,7 +41,6 @@ jobs:
           product: tak
           component: server
           target: run
-          platforms: linux/amd64
           extra-tag: ${{ env.TAK_RELEASE }}
           build-args: |
             TAK_RELEASE=${{ env.TAK_RELEASE }}

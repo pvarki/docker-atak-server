@@ -109,6 +109,9 @@ services:
   v570:
     image: pvarki/tak-server-dist:5.7-RELEASE-32
     build:
+      platforms:
+        - linux/amd64
+        - linux/arm64
       context: .
       dockerfile: Dockerfile_build
       target: takgov_files
