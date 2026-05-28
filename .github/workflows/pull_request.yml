@@ -71,7 +71,6 @@ jobs:
           product: tak
           component: server
           target: run
-          platforms: linux/amd64
           build-args: |
             TAK_RELEASE=${{ env.TAK_RELEASE }}
           dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
