@@ -1,6 +1,6 @@
 services:
   v570:
-    image: pvarki/tak-server-dist:5.7-RELEASE-43
+    image: ${HUB_DOCKER_REPO:-docker.io/}pvarki/tak-server-dist:5.7-RELEASE-43
     build:
       platforms:
         - linux/amd64
