@@ -70,4 +70,8 @@ Versioning is handled with bump-my-version_. To increment, use ``bump-my-version
 
 You can use ``bump-my-version show-bump`` to see how each option would affect the version.
 
+  - Major and minor are TAKServer major and minor
+  - Patch is takserver release
+  - Build is the modification date for this repo
+
 .. _bump-my-version: https://github.com/callowayproject/bump-my-version
