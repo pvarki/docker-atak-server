@@ -1,6 +1,6 @@
 services:
   v570:
-    image: pvarki/tak-server-dist:5.7-RELEASE-32
+    image: pvarki/tak-server-dist:5.7-RELEASE-43
     build:
       platforms:
         - linux/amd64
@@ -10,4 +10,4 @@ services:
       target: takgov_files
       args:
         TAK_VERSION: "5.7"
-        TAK_RELEASE: "32"
+        TAK_RELEASE: "43"
