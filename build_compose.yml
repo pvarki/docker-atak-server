@@ -1,6 +1,6 @@
 services:
-  v570:
-    image: ${HUB_DOCKER_REPO:-docker.io/}pvarki/tak-server-dist:5.7-RELEASE-43
+  v560:
+    image: ${HUB_DOCKER_REPO:-docker.io/}pvarki/tak-server-dist:5.6-RELEASE-57
     build:
       platforms:
         - linux/amd64
@@ -9,5 +9,5 @@ services:
       dockerfile: Dockerfile_build
       target: takgov_files
       args:
-        TAK_VERSION: "5.7"
-        TAK_RELEASE: "43"
+        TAK_VERSION: "5.6"
+        TAK_RELEASE: "57"

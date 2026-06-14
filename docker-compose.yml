@@ -1,5 +1,5 @@
 x-takbuilds: &takbuildinfo
-  image: "${PVARKI_DOCKER_REPO:-ghcr.io/}pvarki/takserver:${TAK_RELEASE:-5.7-RELEASE-43}${DOCKER_TAG_EXTRA:-}"
+  image: "${PVARKI_DOCKER_REPO:-ghcr.io/}pvarki/takserver:${TAK_RELEASE:-5.6-RELEASE-57}${DOCKER_TAG_EXTRA:-}"
   build:
     platforms:
       - linux/amd64
@@ -7,7 +7,7 @@ x-takbuilds: &takbuildinfo
     context: .
     dockerfile: Dockerfile
     args:
-        TAK_RELEASE: ${TAK_RELEASE:-5.7-RELEASE-43}
+        TAK_RELEASE: ${TAK_RELEASE:-5.6-RELEASE-57}
 
 services:
 

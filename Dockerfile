@@ -3,7 +3,7 @@
 # So work around like this                                             #
 ########################################################################
 ARG TEMURIN_VERSION="17"
-ARG TAK_RELEASE="5.7-RELEASE-43"
+ARG TAK_RELEASE="5.6-RELEASE-57"
 FROM pvarki/tak-server-dist:$TAK_RELEASE AS tak-files
 RUN mv /zips/takserver-docker-*.zip /tmp/takserver.zip
 
