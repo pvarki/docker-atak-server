@@ -3,6 +3,7 @@ on:
     branches:
       - main
 
+# Remember to change TAK_RELEASE also in pull_request.yml
 env:
   TAK_RELEASE: 5.7-RELEASE-43
 

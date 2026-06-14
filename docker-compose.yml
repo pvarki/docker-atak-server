@@ -1,4 +1,4 @@
-x-takbuilds: &takbuildinfo
+x-takbuilds: &takbuildinfo  # Remember to change the TAK_RELEASE tag in CI jobs as well
   image: "${PVARKI_DOCKER_REPO:-ghcr.io/}pvarki/takserver:${TAK_RELEASE:-5.7-RELEASE-43}${DOCKER_TAG_EXTRA:-}"
   build:
     platforms:
