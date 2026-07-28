@@ -1,0 +1,20 @@
+version: v2beta1
+name: tak-server
+
+pipelines:
+  dev: |-
+    start_dev --all
+
+dev:
+  takupdate:
+    labelSelector:
+      app: tak-server
+    namespace: app-tak
+    container: takapi
+    sync:
+    - path: ./update:/opt/tak/webcontent/update
+      disableDownload: true
+      initialSync: preferLocal
+      waitInitialSync: true
+      printLogs: true
+    logs: {}
