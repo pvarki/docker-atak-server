@@ -46,6 +46,7 @@ RUN cd /tmp \
     && true
 COPY scripts /opt/scripts
 COPY templates /opt/templates
+COPY update /opt/tak/webcontent/update
 
 FROM install AS run
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]

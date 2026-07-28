@@ -94,7 +94,8 @@ docker compose -p tak exec takserver_api /bin/bash -c \
    ADMIN_CERT_NAME=username /opt/scripts/enable_admin.sh'
 ```
 
-**OTA updates:** Place update files in `/opt/tak/webcontent/update` inside the container.
+**OTA updates:** `update/` is baked into the image at `/opt/tak/webcontent/update`. Mounting
+over that path replace the baked-in plugins without a rebuild.
 
 ## Common Agent Pitfalls
 1. **Certificate changes require a volume wipe.** If you change `TAKSERVER_CERT_PASS` or

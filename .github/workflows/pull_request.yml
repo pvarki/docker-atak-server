@@ -39,6 +39,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          lfs: true
       - name: validate coreconfig
         run: | # pragma: allowlist secret
           docker compose build --progress plain takserver_initialization
@@ -66,6 +67,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          lfs: true
       - name: Publish image
         uses: pvarki/config-ci-library/.github/actions/publish-image@main
         with:
