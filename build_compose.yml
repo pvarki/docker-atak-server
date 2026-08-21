@@ -11,3 +11,16 @@ services:
       args:
         TAK_VERSION: "5.7"
         TAK_RELEASE: "43"
+
+  v580:
+    image: ${HUB_DOCKER_REPO:-docker.io/}pvarki/tak-server-dist:5.8-RELEASE-69
+    build:
+      platforms:
+        - linux/amd64
+        - linux/arm64
+      context: .
+      dockerfile: Dockerfile_build
+      target: takgov_files
+      args:
+        TAK_VERSION: "5.8"
+        TAK_RELEASE: "69"
