@@ -40,6 +40,23 @@ if [[ ! -L "${TR}/logs"  ]];then
   ln -s "${TR}/data/logs/" "${TR}/logs"
 fi
 
+# TAK validates every client certificate against the OCSP responder named in its
+# AIA extension, and in this deployment that URL is HTTPS. That call goes through
+# the JVM truststore, not TAK's own truststore, so without the deployment CA in
+# there the responder's TLS certificate is untrusted, the OCSP check throws, and
+# netty rejects every mTLS client with "peer not verified" - nothing wrong with
+# the client certificate at all. Re-applied on every start; the JVM truststore
+# lives in the image layer, not on a volume.
+if [[ -d /ca_public ]];then
+  for pem in /ca_public/*.pem; do
+    grep -q "BEGIN CERTIFICATE" "${pem}" || continue  # /ca_public also holds CRLs
+    ALIAS="ca_public_$(basename "${pem}" .pem)"
+    keytool -cacerts -storepass changeit -delete -alias "${ALIAS}" >/dev/null 2>&1 || true
+    keytool -cacerts -storepass changeit -noprompt -importcert -trustcacerts \
+      -alias "${ALIAS}" -file "${pem}" >/dev/null && echo "JVM now trusts ${pem}"
+  done
+fi
+
 # Change to workdir
 cd ${TR}
 
