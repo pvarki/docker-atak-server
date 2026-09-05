@@ -24,6 +24,10 @@ jobs:
         uses: j178/prek-action@v2
         env:
           SKIP: no-commit-to-branch
+      - name: Test federation-init
+        run: |
+          sudo apt-get update && sudo apt-get install -y libxml2-utils
+          ./tests/federation/test-federation-init.sh
       - name: Validate bumpversion
         uses: pvarki/config-ci-library/.github/actions/validate-bumpversion@main
 
