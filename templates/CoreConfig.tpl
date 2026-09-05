@@ -77,15 +77,34 @@
 
     <federation allowFederatedDelete="false" allowMissionFederation="true" allowDataFeedFederation="true" enableMissionFederationDisruptionTolerance="true" missionFederationDisruptionToleranceRecencySeconds="43200" enableFederation="true" enableDataPackageAndMissionFileFilter="false">
         <federation-server port="9000" coreVersion="2" v1enabled="false" v2port="9001" v2enabled="true" webBaseUrl="https://{{.Env.TAK_SERVER_ADDRESS}}:8443/Marti">
-            <tls keystore="JKS" keystoreFile="certs/files/takserver.jks" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}" truststore="JKS" truststoreFile="certs/files/fed-truststore.jks" truststorePass="{{.Env.CA_PASS}}" context="TLSv1.2" keymanager="SunX509"/>
+            <!-- Federation v2 is mutual TLS, so this keystore is our identity as a TLS
+                 *client* when we dial a peer, not only as a server. Let's Encrypt stopped
+                 issuing the clientAuth EKU during 2026, so an LE-based takserver.jks can no
+                 longer authenticate outbound federation at all. Point TAK_FED_KEYSTORE_FILE
+                 at a keystore built from a deployment-CA identity to federate; the default
+                 keeps today's behaviour. The keystore must contain the issuing chain, not
+                 just the leaf: FederationServer identifies a peer by its certArray[1]. -->
+            <tls keystore="JKS" keystoreFile="{{getenv "TAK_FED_KEYSTORE_FILE" "certs/files/takserver.jks"}}" keystorePass="{{.Env.TAKSERVER_CERT_PASS}}" truststore="JKS" truststoreFile="certs/files/fed-truststore.jks" truststorePass="{{.Env.CA_PASS}}" context="TLSv1.2" keymanager="SunX509"/>
             <federation-port port="9000" tlsVersion="TLSv1.2"/>
             <v1Tls tlsVersion="TLSv1.2"/>
             <v1Tls tlsVersion="TLSv1.3"/>
             <federation-token-authentication enabled="true" tls="true" port="9002"/>
         </federation-server>
+        <!-- Everything between </federation-server> and </federation> can be supplied as a
+             generated fragment. CoreConfig.xsd fixes the child order here as
+             federation-outgoing*, fileFilter, federateCA* - fileFilter is required and sits
+             between the two things an operator needs to add, so the fragment owns the whole
+             tail rather than being spliced in two places.
+             This is the only durable place for federation config: start-tak.sh regenerates
+             CoreConfig.xml from this template on every container start, so <federate> entries
+             written by the admin UI or by auto-discovery are lost on restart. -->
+{{if file.Exists (getenv "TAK_FEDERATION_EXTRA_FILE" "/opt/tak/data/federation/federation-extra.xml")}}
+{{- file.Read (getenv "TAK_FEDERATION_EXTRA_FILE" "/opt/tak/data/federation/federation-extra.xml")}}
+{{- else}}
         <fileFilter>
             <fileExtension>pref</fileExtension>
         </fileFilter>
+{{- end}}
     </federation>
 
     <logging
