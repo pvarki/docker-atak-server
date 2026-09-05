@@ -103,10 +103,21 @@ if [[ -f "/ca_public/miniwerk_ca.pem" ]];then
     -storepass ${KEYSTORE_PASS}
 fi
 
-# fed-truststore.jks is needed, copy takserver-truststore.jks
-# TODO what are the names of truststores that we actually need???
-cp -v /opt/tak/data/certs/files/takserver-truststore.jks /opt/tak/data/certs/files/fed-truststore.jks
+# truststore-root.jks authenticates ATAK *clients* on 8089/8443, so it stays exactly our
+# own CAs and nothing else. A federation peer's CA must never end up in here: it would let
+# that peer's unit mint users on this server.
 cp -v /opt/tak/data/certs/files/takserver-truststore.jks /opt/tak/data/certs/files/truststore-root.jks
+
+# fed-truststore.jks authenticates federation *peers* and therefore has to be able to hold
+# CAs that truststore-root.jks must not. This block runs above the firstrun.done early-exit
+# below, i.e. on every container start, so an unconditional copy here silently discards every
+# peer CA on restart and federation comes back up trusting nobody. Seed it only when it does
+# not exist yet, and leave it alone afterwards for whatever manages peer trust to own.
+if [[ ! -f /opt/tak/data/certs/files/fed-truststore.jks ]];then
+  cp -v /opt/tak/data/certs/files/takserver-truststore.jks /opt/tak/data/certs/files/fed-truststore.jks
+else
+  echo "Keeping existing fed-truststore.jks"
+fi
 
 popd >> /dev/null
 
