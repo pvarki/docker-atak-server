@@ -88,7 +88,12 @@
             <federation-port port="9000" tlsVersion="TLSv1.2"/>
             <v1Tls tlsVersion="TLSv1.2"/>
             <v1Tls tlsVersion="TLSv1.3"/>
-            <federation-token-authentication enabled="true" tls="true" port="9002"/>
+            <!-- Off by default, matching the XSD default. This is a second front door:
+                 a federate authenticating with a bearer token bypasses fed-truststore.jks
+                 and the <federateCA> fingerprint list entirely. Nothing here uses it -
+                 federation-outgoing is generated without useToken - so leave it shut and
+                 do not publish 9002. -->
+            <federation-token-authentication enabled="{{getenv "TAK_FEDERATION_TOKEN_AUTH" "false"}}" tls="true" port="9002"/>
         </federation-server>
         <!-- Everything between </federation-server> and </federation> can be supplied as a
              generated fragment. CoreConfig.xsd fixes the child order here as

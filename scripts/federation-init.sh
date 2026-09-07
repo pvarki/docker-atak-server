@@ -17,6 +17,9 @@ set -euo pipefail
 CERT_DIR="${CERT_DIR:-/opt/tak/data/certs/files}"
 FED_DIR="${FED_DIR:-/opt/tak/data/federation}"
 FED_XML="${FED_DIR}/federation-extra.xml"
+# First-seen peer CA fingerprints. On the tak-data volume so it survives restarts:
+# without it the "pin" would be re-derived from the network on every boot.
+KNOWN_DIR="${FED_DIR}/known-peer-cas"
 
 FED_TLS_DIR="${FED_TLS_DIR:-/fed_certs}"     # cert-manager secret tak-federation-tls
 PEER_CA_DIR="${PEER_CA_DIR:-/fed_peer_ca}"   # ConfigMap of committed peer CA PEMs
@@ -28,7 +31,12 @@ TAKSERVER_KEYSTORE_PASS="${TAKSERVER_KEYSTORE_PASS:?TAKSERVER_KEYSTORE_PASS is r
 KEYSTORE_PASS="${KEYSTORE_PASS:?KEYSTORE_PASS is required}"
 
 FED_ALIAS="${TAK_SERVER_ADDRESS:-takserver}"
-FED_STRICT="${FED_STRICT:-true}"
+# Default false: federation is an OPTIONAL feature and must not be able to take
+# port 8089 down for every fielded ATAK client. A broken federation identity now
+# degrades to "federation off" and TAK starts normally. Set true in CI, where a
+# hard failure is exactly what you want.
+FED_STRICT="${FED_STRICT:-false}"
+FED_DEGRADED=0
 # Space-separated: <federateCA> takes unbounded inboundGroup/outboundGroup children,
 # so several groups can be mapped at once (e.g. "default __ANON__").
 FED_GROUP="${TAK_FEDERATION_GROUP:-default __ANON__}"
@@ -53,9 +61,15 @@ mkdir -p "${CERT_DIR}" "${FED_DIR}"
 
 log() { echo "federation-init: $*"; }
 fatal() {
-  log "FATAL - $*"
-  if [[ "${FED_STRICT}" == "true" ]]; then exit 1; fi
-  log "FED_STRICT=false, continuing with a federation identity that will not work"
+  log "ERROR - $*"
+  if [[ "${FED_STRICT}" == "true" ]]; then
+    log "FED_STRICT=true, failing the container"
+    exit 1
+  fi
+  # Do NOT carry on building federation config from a broken identity: that used to
+  # produce a half-configured server. Mark it and bail out cleanly below instead.
+  log "Federation DISABLED for this run; TAK itself will start normally."
+  FED_DEGRADED=1
 }
 
 # ---------------------------------------------------------------------------
@@ -77,9 +91,15 @@ if [[ ! -s "${FED_TLS_DIR}/tls.crt" || ! -s "${FED_TLS_DIR}/tls.key" ]]; then
   log "WARNING - federation will NOT work until a tak-federation Certificate is deployed"
   cp -v "${CERT_DIR}/takserver.jks" "${CERT_DIR}/fed-keystore.jks"
 else
+  # Everything that can fail on a bad identity lives in this function, and it is
+  # called with `if ! ...` so `set -e` is suspended for the whole call. Without
+  # that, a corrupt tls.crt aborts the script outright and never reaches fatal(),
+  # which is exactly how a broken federation cert used to take TAK down.
+  build_fed_identity() {
   # `openssl x509 -in` emits only the first certificate, so this strips any chain
   # cert-manager already appended and -certfile below cannot duplicate it.
-  openssl x509 -in "${FED_TLS_DIR}/tls.crt" -out "${WORK}/leaf.pem"
+  openssl x509 -in "${FED_TLS_DIR}/tls.crt" -out "${WORK}/leaf.pem" 2>/dev/null \
+    || { log "ERROR - ${FED_TLS_DIR}/tls.crt is not a readable certificate"; return 1; }
 
   EKU="$(openssl x509 -in "${WORK}/leaf.pem" -noout -ext extendedKeyUsage 2>/dev/null || true)"
   log "identity subject : $(openssl x509 -in "${WORK}/leaf.pem" -noout -subject)"
@@ -92,10 +112,12 @@ else
   # we would present it happily and see only a TLS alert. The legible error lands
   # in the PEER's log.
   case "${EKU}" in *"TLS Web Client Authentication"*) ;; *)
-    fatal "federation identity has no clientAuth EKU; outgoing federation cannot authenticate" ;;
+    log "ERROR - federation identity has no clientAuth EKU; outgoing federation cannot authenticate"
+    return 1 ;;
   esac
   case "${EKU}" in *"TLS Web Server Authentication"*) ;; *)
-    fatal "federation identity has no serverAuth EKU; inbound ${FED_PORT} cannot serve" ;;
+    log "ERROR - federation identity has no serverAuth EKU; inbound ${FED_PORT} cannot serve"
+    return 1 ;;
   esac
 
   # Mirror firstrun_rm.sh's legacy-provider detection so both keystores are built
@@ -127,29 +149,66 @@ else
     -storepass "${TAKSERVER_KEYSTORE_PASS}" | sed -n 's/.*Certificate chain length: //p' | head -1)"
   log "built fed-keystore.jks alias=${FED_ALIAS} chain length=${CHAIN_LEN:-0}"
   if [[ "${CHAIN_LEN:-0}" -lt 2 ]]; then
-    fatal "fed-keystore.jks has no issuer in its chain; the peer cannot identify our CA"
+    log "ERROR - fed-keystore.jks has no issuer in its chain; the peer cannot identify our CA"
+    return 1
   fi
+  return 0
+  }
+
+  if ! build_fed_identity; then
+    fatal "could not build a usable federation identity from ${FED_TLS_DIR}"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 1b. Degrade cleanly if the identity is unusable
+#
+# CoreConfig points TAK_FED_KEYSTORE_FILE at fed-keystore.jks unconditionally, so
+# that file must exist or every JVM fails to start. Leave a working keystore, drop
+# any stale fragment, and exit 0 so the rest of TAK comes up without federation.
+# ---------------------------------------------------------------------------
+if [[ "${FED_DEGRADED}" == "1" ]]; then
+  if [[ ! -s "${CERT_DIR}/fed-keystore.jks" ]]; then
+    cp -v "${CERT_DIR}/takserver.jks" "${CERT_DIR}/fed-keystore.jks"
+  fi
+  rm -f "${FED_XML}"
+  log "done (federation disabled, TAK unaffected)"
+  exit 0
 fi
 
 # ---------------------------------------------------------------------------
 # 2. Collect peer CAs
 #
-# Two sources, both optional and additive:
-#   - PEMs mounted from a ConfigMap  (manual / pinned peers)
-#   - fetched from TAK_FEDERATION_PEERS over HTTPS  (spawned fleets)
-# The fetch is NOT trust-on-first-use: /ca/public is served by Traefik on 443
-# behind a publicly trusted Let's Encrypt certificate, so curl verifies it.
+# Two sources, in strict precedence order:
+#   1. PEMs mounted from a ConfigMap  -- AUTHORITATIVE, never fetched over
+#   2. fetched from TAK_FEDERATION_PEERS over HTTPS  (spawned fleets)
+#
+# What the fetch actually proves is only "somebody who can pass ACME for that
+# hostname", so it is trust-on-first-use, not a pin. curl does verify TLS (there
+# is deliberately no -k and no -L, so a redirect-to-http downgrade is blocked),
+# but DNS control over a peer name is enough to serve us a hostile CA. That is
+# why the first-seen fingerprint is remembered in KNOWN_DIR below and a change
+# is refused: mount the CA from a ConfigMap to pin it from the very first run.
 # ---------------------------------------------------------------------------
-mkdir -p "${WORK}/peers"
+mkdir -p "${WORK}/peers" "${KNOWN_DIR}"
+PINNED_PEERS=""
 shopt -s nullglob
 for pem in "${PEER_CA_DIR}"/*.pem; do
   cp "${pem}" "${WORK}/peers/$(basename "${pem}")"
-  log "peer CA from configmap: $(basename "${pem}")"
+  PINNED_PEERS="${PINNED_PEERS} $(basename "${pem}" .pem)"
+  log "peer CA from configmap (authoritative): $(basename "${pem}")"
 done
 shopt -u nullglob
 
 for peer in ${FED_PEERS}; do
   if [[ "${peer}" == "${OWN_HOST}" ]]; then
+    continue
+  fi
+  # A ConfigMap-mounted CA is the operator's explicit pin. Fetching over it would
+  # let whoever controls the peer's DNS silently replace it -- and the rm -f below
+  # would delete it outright when the fetch failed.
+  if [[ " ${PINNED_PEERS} " == *" ${peer} "* ]]; then
+    log "peer CA for ${peer} is pinned by configmap; not fetching"
     continue
   fi
   if curl -fsS --retry "${FED_FETCH_RETRIES}" --retry-delay 5 --retry-connrefused --max-time 30 \
@@ -195,8 +254,28 @@ shopt -s nullglob
 for pem in "${WORK}/peers"/*.pem; do
   grep -q "BEGIN CERTIFICATE" "${pem}" || { log "WARNING - ${pem} is not a certificate"; continue; }
   peer="$(basename "${pem}" .pem)"
-  import_ca "peer_${peer}" "${pem}"
   fp="$(ca_fingerprint "${pem}")"
+
+  # Fingerprint must be checked BEFORE the CA is imported, or a rotated hostile CA
+  # is already a trust anchor by the time we notice. Pinned CAs skip this: the
+  # ConfigMap is the pin, and an operator editing it should win.
+  if [[ " ${PINNED_PEERS} " != *" ${peer} "* ]]; then
+    known="${KNOWN_DIR}/${peer}.sha256"
+    if [[ -f "${known}" && "$(cat "${known}")" != "${fp}" ]]; then
+      log "REFUSING ${peer}: CA fingerprint changed since first trust"
+      log "  expected $(cat "${known}")"
+      log "  got      ${fp}"
+      log "  Someone who controls that hostname can serve any CA. If this rotation"
+      log "  is legitimate: rm ${known} and restart. Not federating with it now."
+      continue
+    fi
+    if [[ ! -f "${known}" ]]; then
+      echo "${fp}" > "${known}"
+      log "recorded first-seen CA for ${peer} (pin it via configmap to avoid TOFU)"
+    fi
+  fi
+
+  import_ca "peer_${peer}" "${pem}"
   PEER_COUNT=$((PEER_COUNT + 1))
   log "trust peer_${peer}  sha256=${fp}  $(openssl x509 -in "${pem}" -noout -subject)"
 
