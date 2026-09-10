@@ -88,7 +88,18 @@ if [[ ! -s "${FED_TLS_DIR}/tls.crt" || ! -s "${FED_TLS_DIR}/tls.key" ]]; then
   # as it did before federation existed: it comes up, and federation cannot
   # authenticate outbound because the Let's Encrypt cert has no clientAuth EKU.
   log "WARNING - no federation identity at ${FED_TLS_DIR}; falling back to takserver.jks"
-  log "WARNING - federation will NOT work until a tak-federation Certificate is deployed"
+  log "WARNING - federation will NOT work: takserver.jks holds the web certificate, and a"
+  log "WARNING - Let's Encrypt cert has no clientAuth EKU, so no peer can ever accept it."
+  if [[ "${TAK_FEDERATION_ENABLED:-false}" == "true" ]]; then
+    # The operator asked for an identity and did not get one, so the mint is broken
+    # rather than merely skipped. Say so, because the fallback below looks identical.
+    log "WARNING - TAK_FEDERATION_ENABLED=true but no identity arrived: the mint did not"
+    log "WARNING - run or it failed. Check the takfedinit cfssl step and the cfssl logs."
+  else
+    log "WARNING - To fix on compose: set TAK_FEDERATION_ENABLED=true (or configure"
+    log "WARNING - TAK_FEDERATION_PEERS) and restart. On Kubernetes: deploy the"
+    log "WARNING - tak-federation Certificate so ${FED_TLS_DIR} is populated."
+  fi
   cp -v "${CERT_DIR}/takserver.jks" "${CERT_DIR}/fed-keystore.jks"
 else
   # Everything that can fail on a bad identity lives in this function, and it is
