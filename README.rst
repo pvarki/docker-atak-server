@@ -106,6 +106,15 @@ regenerating the product key or reimporting the database. HTTPS certificate
 rotation therefore leaves CoT and JWT signing keys intact. CoT clients may use
 EC certificates. The truststores contain the CFSSL root and intermediate CAs.
 
+Each TAK service also builds its own outbound Java truststore at
+``/opt/tak/java-cacerts.p12`` on startup. It retains the current JRE's public CA
+roots and adds ``/ca_public/ca_chain.pem``, ``/ca_public/miniwerk_ca.pem`` when
+using local mkcert, and the standalone CA at ``data/certs/files/ca.pem`` when
+present. This lets Java verify internal HTTPS services and the HTTPS OCSP
+responder. Restart services after CA changes to rebuild their outbound stores.
+The CoT client truststore and administrator-managed federation truststore remain
+separate; these public HTTPS roots do not authorize CoT or federation clients.
+
 
 Standalone certificates and persistence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

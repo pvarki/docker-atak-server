@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import TextIO
 
 import coreconfig
+import java_truststore
 
 
 def link_file(link: Path, target: Path) -> None:
@@ -115,6 +116,7 @@ def main() -> None:
     link_file(root / "CoreConfig.xml", canonical)
     link_file(root / "TAKIgniteConfig.xml", data / "TAKIgniteConfig.xml")
     os.environ["TAKCL_CORECONFIG_PATH"] = str(canonical)
+    java_truststore.configure(root)
     os.execv("/bin/bash", ["/bin/bash", "/opt/scripts/run-tak.sh", args.profile])
 
 
