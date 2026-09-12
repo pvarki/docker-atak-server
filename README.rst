@@ -193,6 +193,24 @@ federation trust. Later product/CA rotation or truststore-password changes requi
 explicit federation truststore maintenance; restarting initialization does not
 replace this store. Other local TLS stores continue to be refreshed as before.
 
+Python development checks
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The scripts and tests target Python 3.12. Use uv for their development environment
+and locked dependencies::
+
+    uv sync --frozen
+    uv run --frozen ruff check .
+    uv run --frozen ruff format --check .
+    uv run --frozen pyrefly check
+    prek run --all-files
+
+Prek checks lockfile consistency, runs Ruff linting and formatting, and runs
+Pyrefly over every Python script and test. Ruff also requires function parameter
+and return annotations. Pyrefly uses the lxml type stubs installed by uv.
+These tools replace Black in the hooks. CI installs uv before running prek.
+The production image continues to provide Python and lxml through its OS packages.
+
 Configuration regression tests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

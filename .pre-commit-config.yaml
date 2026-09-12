@@ -64,8 +64,27 @@ repos:
     hooks:
         - id: actionlint
           args: ["-shellcheck", "''"]
--   repo: https://github.com/psf/black
-    rev: 25.1.0
+-   repo: local
     hooks:
-    -   id: black
-        language_version: python3
+    -   id: uv-lock
+        name: uv lock consistency
+        entry: uv lock --check
+        language: system
+        files: ^(pyproject\.toml|uv\.lock|\.python-version)$
+        pass_filenames: false
+    -   id: ruff-check
+        name: Ruff lint
+        entry: uv run --frozen ruff check --fix
+        language: system
+        types_or: [python, pyi]
+    -   id: ruff-format
+        name: Ruff format
+        entry: uv run --frozen ruff format
+        language: system
+        types_or: [python, pyi]
+    -   id: pyrefly
+        name: Pyrefly
+        entry: uv run --frozen pyrefly check
+        language: system
+        files: (^.*\.pyi?$|^pyproject\.toml$|^uv\.lock$)
+        pass_filenames: false

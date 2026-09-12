@@ -8,3 +8,6 @@ takdata
 takgov_assets/*.zip
 takgov_assets/*/
 .devspace
+.venv/
+__pycache__/
+.ruff_cache/
