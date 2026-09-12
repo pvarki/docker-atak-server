@@ -4,6 +4,7 @@
         xsi:schemaLocation="/opt/tak/CoreConfig.xsd">
     <network multicastTTL="5">
         <input _name="stdssl" protocol="tls" port="8089" coreVersion="2"/>
+        <input _name="stdssl-noarchive" protocol="tls" port="8090" coreVersion="2" archive="false"/>
 
         <!-- default web connectors
         <connector port="8443" _name="https"/>
