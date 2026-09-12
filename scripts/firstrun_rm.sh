@@ -74,7 +74,8 @@ for ca in root_ca intermediate_ca; do
 done
 # Client identities on TAK and federation connections are issued by CFSSL.
 cp "${cert_work}/truststore.jks" "${TR}/data/certs/files/truststore-root.jks"
-cp "${cert_work}/truststore.jks" "${TR}/data/certs/files/fed-truststore.jks"
+KEYSTORE_PASS="${KEYSTORE_PASS}" /usr/bin/python3 /opt/scripts/init-fed-truststore.py \
+  "${TR}/data/certs/files/fed-truststore.jks" "${TAK_SERVER_CERT_FILENAME}" "${RM_CERT_CHAIN_FILENAME}"
 mv "${cert_work}/truststore.jks" "${TR}/data/certs/files/takserver-truststore.jks"
 
 if [[ -f "${TR}/data/firstrun.done" ]]; then
