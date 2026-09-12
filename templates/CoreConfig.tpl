@@ -19,7 +19,6 @@
     </network>
 {{if getenv "LDAP_BIND_PASSWORD" ""}}
     <auth default="ldap" x509groups="true" x509addAnonymous="false">
-        <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
         <ldap url="{{getenv "LDAP_URL" "ldap://openldap:1389"}}"
               updateinterval="60"
               userstring="uid={username},ou=users,dc=example,dc=org"
@@ -32,6 +31,7 @@
               groupNameExtractorRegex="(?:cn|CN)=(?:tak_)?(.+?),"
               groupprefix="CN=tak_"
         />
+        <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
     </auth>
 {{else}}
     <auth x509groups="true" x509addAnonymous="false">

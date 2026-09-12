@@ -5,7 +5,6 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from copy import deepcopy
 from pathlib import Path
 
 from lxml import etree
@@ -22,7 +21,7 @@ class CoreConfigTest(unittest.TestCase):
         self.addCleanup(self.work.cleanup)
         self.folder = Path(self.work.name)
         self.template = self.folder / "template.xml"
-        environment = dict(
+        self.environment = dict(
             os.environ,
             TAKSERVER_CERT_PASS="test",
             CA_PASS="test",
@@ -31,21 +30,24 @@ class CoreConfigTest(unittest.TestCase):
             POSTGRES_ADDRESS="new-db",
             TAK_SERVER_ADDRESS="tak.test",
         )
-        environment.pop("LDAP_BIND_PASSWORD", None)
-        for name in list(environment):
+        self.environment.pop("LDAP_BIND_PASSWORD", None)
+        for name in list(self.environment):
             if name.startswith("TAK_HTTPS_"):
-                environment.pop(name)
+                self.environment.pop(name)
+        self.render_template()
+        self.schema = Path("/opt/tak/CoreConfig.xsd")
+        self.destination = self.folder / "CoreConfig_config.xml"
+
+    def render_template(self) -> None:
         template_path = Path(__file__).resolve().parents[1] / "templates/CoreConfig.tpl"
         self.template.write_bytes(
             subprocess.run(
                 ["gomplate", "-f", str(template_path)],
-                env=environment,
+                env=self.environment,
                 check=True,
                 capture_output=True,
             ).stdout
         )
-        self.schema = Path("/opt/tak/CoreConfig.xsd")
-        self.destination = self.folder / "CoreConfig_config.xml"
 
     def save(self, root: etree._Element, destination: Path | None = None) -> None:
         (destination or self.destination).write_bytes(etree.tostring(root))
@@ -174,18 +176,22 @@ class CoreConfigTest(unittest.TestCase):
         self.assertEqual(self.destination.read_bytes(), before)
 
     def test_ldap_can_be_enabled_and_disabled(self) -> None:
-        saved = coreconfig.read_xml(self.template)
-        template = deepcopy(saved)
-        auth = coreconfig.require(template, "auth")
-        auth.set("default", "ldap")
-        etree.SubElement(
-            auth, f"{{{coreconfig.NS}}}ldap", url="ldap://directory.test", style="DS"
-        )
-        enabled = coreconfig.merge(saved, template)
+        self.prepare()
+        self.environment["LDAP_BIND_PASSWORD"] = "test"  # pragma: allowlist secret
+        self.environment["LDAP_URL"] = "ldap://directory.test"
+        self.render_template()
+        self.prepare()
+        enabled = coreconfig.read_xml(self.destination)
         self.assertEqual(
             coreconfig.require(enabled, "auth/ldap").get("url"), "ldap://directory.test"
         )
-        disabled = coreconfig.merge(enabled, saved)
+        # Fresh RASENMAEHER startup must also validate the actual LDAP template.
+        self.destination.unlink()
+        self.prepare()
+        self.environment.pop("LDAP_BIND_PASSWORD")
+        self.render_template()
+        self.prepare()
+        disabled = coreconfig.read_xml(self.destination)
         self.assertIsNone(coreconfig.one(disabled, "auth/ldap"))
         self.assertIsNone(coreconfig.require(disabled, "auth").get("default"))
 
