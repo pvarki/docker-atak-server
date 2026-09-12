@@ -11,7 +11,10 @@
         <connector port="8446" clientAuth="false" _name="cert_https"/>
         -->
         <!-- Disable webtak and non-admin user interfaces -->
-        <connector port="8443" _name="https" enableWebtak="{{getenv "WEBTAK_ENABLE" "false"}}" enableNonAdminUI="false" />
+        <connector port="8443" _name="https" enableWebtak="{{getenv "WEBTAK_ENABLE" "false"}}" enableNonAdminUI="false"
+            keystore="JKS"
+            keystoreFile="{{getenv "TAK_HTTPS_KEYSTORE_FILENAME" "/opt/tak/data/certs/files/takserver.jks"}}"
+            keystorePass="{{.Env.TAKSERVER_CERT_PASS}}" />
     </network>
 {{if getenv "LDAP_BIND_PASSWORD" ""}}
     <auth default="ldap" x509groups="true" x509addAnonymous="false">

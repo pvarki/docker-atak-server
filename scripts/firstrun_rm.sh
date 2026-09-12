@@ -1,131 +1,93 @@
 #!/usr/bin/env -S /bin/bash
+set -euo pipefail
 TR=/opt/tak
-CR=${TR}/certs
 
-TAK_SERVER_KEY_FILENAME="${TAK_SERVER_KEY_FILENAME:-/le_certs/rasenmaeher/privkey.pem}"
-TAK_SERVER_CERT_FILENAME="${TAK_SERVER_CERT_FILENAME:-/le_certs/rasenmaeher/fullchain.pem}"
+# CoT and TAK's built-in JWT signer share an RSA identity issued by CFSSL via RMAPI.
+TAK_SERVER_KEY_FILENAME="${TAK_SERVER_KEY_FILENAME:-/data/persistent/private/mtlsclient.key}"
+TAK_SERVER_CERT_FILENAME="${TAK_SERVER_CERT_FILENAME:-/data/persistent/public/mtlsclient.pem}"
+TAK_HTTPS_KEY_FILENAME="${TAK_HTTPS_KEY_FILENAME:-/le_certs/rasenmaeher/privkey.pem}"
+TAK_HTTPS_CERT_FILENAME="${TAK_HTTPS_CERT_FILENAME:-/le_certs/rasenmaeher/fullchain.pem}"
+TAK_HTTPS_KEYSTORE_FILENAME="${TAK_HTTPS_KEYSTORE_FILENAME:-/opt/tak/data/certs/files/takserver-https.jks}"
 TAKSERVER_KEYSTORE_PASS="${TAKSERVER_KEYSTORE_PASS:-takservercertpass}"
-
 RM_CERT_CHAIN_FILENAME="${RM_CERT_CHAIN_FILENAME:-/ca_public/ca_chain.pem}"
-
-# Secret to trusted certs java keystore
 KEYSTORE_PASS="${KEYSTORE_PASS:-takcacertpw}"
 
-# Symlink the log directory under data dir
-if [[ ! -d "${TR}/data/logs" ]];then
-  mkdir -p "${TR}/data/logs"
-fi
-if [[ ! -L "${TR}/logs"  ]];then
+mkdir -p "${TR}/data/logs" "${TR}/data/certs/files" /data/persistent
+if [[ ! -L "${TR}/logs" ]]; then
   ln -f -s "${TR}/data/logs/" "${TR}/logs"
 fi
-
-# Seed initial certificate data if necessary
-if [[ ! -d "${TR}/data/certs" ]];then
-  mkdir -p "${TR}/data/certs"
-fi
-# Move original certificate data and symlink to certificate data in data dir
-if [[ ! -L "${TR}/certs"  ]];then
-  mv ${TR}/certs ${TR}/certs.orig
+if [[ ! -L "${TR}/certs" ]]; then
+  mv "${TR}/certs" "${TR}/certs.orig"
   ln -f -s "${TR}/data/certs/" "${TR}/certs"
 fi
 
-TAK_SERVER_HOSTNAME="$(cat /pvarki/kraftwerk-init.json | jq -r  .product.dns)"
-
-
-mkdir -p /opt/tak/data/certs/files
-pushd /opt/tak/data/certs/files >> /dev/null
-
-openssl list -providers 2>&1 | grep "\(invalid command\|unknown option\)" >/dev/null
-if [ $? -ne 0 ] ; then
-  echo "Using legacy provider"
-  LEGACY_PROVIDER="-legacy"
+TAK_SERVER_HOSTNAME="$(jq -er .product.dns /pvarki/kraftwerk-init.json)"
+# Development DNS resolves to loopback; reach the published RMAPI through the host.
+if [[ "$(jq -r .rasenmaeher.init.base_uri /pvarki/kraftwerk-init.json)" == *localmaeher.dev.pvarki.fi* ]]; then
+  GW_IP="$(getent ahostsv4 host.docker.internal | awk '$2 == "STREAM" {print $1; exit}')"
+  test -n "${GW_IP}"
+  echo "${GW_IP} localmaeher.dev.pvarki.fi mtls.localmaeher.dev.pvarki.fi" >> /etc/hosts
 fi
 
-
-echo "(re)Add TLS keys to keystore"
-# We have to do this pkcs12 song and dance because keytool can't import private keys directly
-# Create takserver.p12 using certificates from RM
-openssl pkcs12 ${LEGACY_PROVIDER} -export -out takserver.p12 \
-  -inkey "${TAK_SERVER_KEY_FILENAME}" \
-  -in "${TAK_SERVER_CERT_FILENAME}" \
-  -name "${TAK_SERVER_HOSTNAME}" \
-  -passout pass:${TAKSERVER_KEYSTORE_PASS}
-
-# Remove the old key (if exists)
-keytool -delete \
-  -alias "${TAK_SERVER_HOSTNAME}" \
-  -keystore takserver.jks \
-  -storepass "${TAKSERVER_KEYSTORE_PASS}"
-# Create the Java keystore and import takserver.p12
-keytool -importkeystore -srcstoretype PKCS12 \
-  -destkeystore takserver.jks \
-  -srckeystore takserver.p12 \
-  -alias "${TAK_SERVER_HOSTNAME}" \
-  -srcstorepass "${TAKSERVER_KEYSTORE_PASS}" \
-  -deststorepass "${TAKSERVER_KEYSTORE_PASS}" \
-  -destkeypass "${TAKSERVER_KEYSTORE_PASS}"
-
-# Put the CA certs one-by-one (can't import full chains in one go) to the truststore
-# Remove the old root key (if exists)
-keytool -delete \
-  -alias "RM_Root" \
-  -keystore takserver-truststore.jks \
-  -storepass ${KEYSTORE_PASS}
-# Add root key
-keytool -noprompt -import -trustcacerts \
-  -file "/ca_public/root_ca.pem" \
-  -alias "RM_Root" \
-  -keystore takserver-truststore.jks \
-  -storepass ${KEYSTORE_PASS}
-
-# Remove the old intermediate key (if exists)
-keytool -delete \
-  -alias "RM_Intermediate" \
-  -keystore takserver-truststore.jks \
-  -storepass ${KEYSTORE_PASS}
-# Add intermediate key
-keytool -noprompt -import -trustcacerts \
-  -file "/ca_public/intermediate_ca.pem" \
-  -alias "RM_Intermediate" \
-  -keystore takserver-truststore.jks \
-  -storepass ${KEYSTORE_PASS}
-
-if [[ -f "/ca_public/miniwerk_ca.pem" ]];then
-  # Remove the old key (if exists)
-  keytool -delete \
-    -alias "MW_Root" \
-    -keystore takserver-truststore.jks \
-    -storepass ${KEYSTORE_PASS}
-  keytool -noprompt -import -trustcacerts \
-    -file /ca_public/miniwerk_ca.pem \
-    -alias "MW_Root" \
-    -keystore takserver-truststore.jks \
-    -storepass ${KEYSTORE_PASS}
+# Reuse the product identity on restart, including identities created by older takrmapi.
+# The manifest's CSR token must never be consumed independently by both containers.
+if [[ ! -s /data/persistent/public/mtlsclient.pem ]]; then
+  /kw_product_init init --keytype RSA /pvarki/kraftwerk-init.json
 fi
+openssl rsa -in "${TAK_SERVER_KEY_FILENAME}" -check -noout >/dev/null
+if ! openssl verify -CAfile "${RM_CERT_CHAIN_FILENAME}" -purpose sslserver \
+    -verify_hostname "${TAK_SERVER_HOSTNAME}" "${TAK_SERVER_CERT_FILENAME}"; then
+  # Older product certificates only had clientAuth. Reissue using the same key
+  # and mTLS credentials, without consuming the bootstrap token again.
+  /kw_product_init renew /pvarki/kraftwerk-init.json
+  openssl verify -CAfile "${RM_CERT_CHAIN_FILENAME}" -purpose sslserver \
+    -verify_hostname "${TAK_SERVER_HOSTNAME}" "${TAK_SERVER_CERT_FILENAME}"
+fi
+date -u +"%Y%m%dT%H%M" >/data/persistent/firstrun.done
 
-# fed-truststore.jks is needed, copy takserver-truststore.jks
-# TODO what are the names of truststores that we actually need???
-cp -v /opt/tak/data/certs/files/takserver-truststore.jks /opt/tak/data/certs/files/fed-truststore.jks
-cp -v /opt/tak/data/certs/files/takserver-truststore.jks /opt/tak/data/certs/files/truststore-root.jks
+cert_work="$(mktemp -d "${TR}/data/certs/files/.init-XXXXXX")"
+trap 'rm -rf "$cert_work"' EXIT
 
-popd >> /dev/null
+import_identity() {
+  local name="$1" key="$2" certificate="$3" destination="$4"
+  # Build fresh stores so stale aliases cannot affect TAK's JWT key selection.
+  openssl pkcs12 -export -out "${cert_work}/${name}.p12" \
+    -inkey "${key}" -in "${certificate}" -name "${TAK_SERVER_HOSTNAME}" \
+    -passout "pass:${TAKSERVER_KEYSTORE_PASS}"
+  keytool -noprompt -importkeystore -srcstoretype PKCS12 -deststoretype JKS \
+    -destkeystore "${cert_work}/${name}.jks" -srckeystore "${cert_work}/${name}.p12" \
+    -alias "${TAK_SERVER_HOSTNAME}" -srcstorepass "${TAKSERVER_KEYSTORE_PASS}" \
+    -deststorepass "${TAKSERVER_KEYSTORE_PASS}" -destkeypass "${TAKSERVER_KEYSTORE_PASS}"
+  chmod 600 "${cert_work}/${name}.jks"
+  mv "${cert_work}/${name}.jks" "${destination}"
+}
 
-if [ -f /opt/tak/data/firstrun.done ]
-then
+import_identity cot "${TAK_SERVER_KEY_FILENAME}" "${TAK_SERVER_CERT_FILENAME}" \
+  "${TR}/data/certs/files/takserver.jks"
+import_identity https "${TAK_HTTPS_KEY_FILENAME}" "${TAK_HTTPS_CERT_FILENAME}" \
+  "${TAK_HTTPS_KEYSTORE_FILENAME}"
+
+for ca in root_ca intermediate_ca; do
+  keytool -noprompt -importcert -trustcacerts -storetype JKS \
+    -file "/ca_public/${ca}.pem" -alias "${ca}" \
+    -keystore "${cert_work}/truststore.jks" -storepass "${KEYSTORE_PASS}"
+done
+# Client identities on TAK and federation connections are issued by CFSSL.
+cp "${cert_work}/truststore.jks" "${TR}/data/certs/files/truststore-root.jks"
+cp "${cert_work}/truststore.jks" "${TR}/data/certs/files/fed-truststore.jks"
+mv "${cert_work}/truststore.jks" "${TR}/data/certs/files/takserver-truststore.jks"
+
+if [[ -f "${TR}/data/firstrun.done" ]]; then
   echo "First run already done, not importing database"
   exit 0
 fi
 
-
-set -e
 echo "Wait for postgres"
-WAITFORIT_TIMEOUT=60 /usr/bin/wait-for-it.sh ${POSTGRES_ADDRESS}:5432 -- true
+WAITFORIT_TIMEOUT=60 /usr/bin/wait-for-it.sh "${POSTGRES_ADDRESS}:5432" -- true
 echo "Init db"
-# This requires postgres superuser privileges which we do not want to actually give to tak containers
-# java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_SUPERUSER} -password ${POSTGRES_SUPER_PASSWORD} upgrade
-# First import base SQL file to get base migration state
-PGPASSWORD=${POSTGRES_PASSWORD} psql -v ON_ERROR_STOP=1 -h ${POSTGRES_ADDRESS} -U ${POSTGRES_USER} ${POSTGRES_DB} --single-transaction --file /opt/scripts/takdb_base.sql
-# Then if there are any un-applied migrations apply them.
-java -jar ${TR}/db-utils/SchemaManager.jar -url jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB} -user ${POSTGRES_USER} -password ${POSTGRES_PASSWORD} upgrade
-
-date -u +"%Y%m%dT%H%M" >/opt/tak/data/firstrun.done
+PGPASSWORD="${POSTGRES_PASSWORD}" psql -v ON_ERROR_STOP=1 -h "${POSTGRES_ADDRESS}" \
+  -U "${POSTGRES_USER}" "${POSTGRES_DB}" --single-transaction --file /opt/scripts/takdb_base.sql
+java -jar "${TR}/db-utils/SchemaManager.jar" \
+  -url "jdbc:postgresql://${POSTGRES_ADDRESS}:5432/${POSTGRES_DB}" \
+  -user "${POSTGRES_USER}" -password "${POSTGRES_PASSWORD}" upgrade
+date -u +"%Y%m%dT%H%M" >"${TR}/data/firstrun.done"
