@@ -97,6 +97,10 @@ def ensure(root: etree._Element, template: etree._Element, path: str) -> etree._
         raise ValueError(f"Managed element missing from template: {path}")
     parent_path = path.rpartition("/")[0]
     parent = ensure(root, template, parent_path) if parent_path else root
+    # Restoring a parent copies its whole subtree, including the requested child.
+    existing = one(root, path)
+    if existing is not None:
+        return existing
     element = deepcopy(source)
     following_tags = [
         item.tag for item in source.itersiblings() if isinstance(item.tag, str)

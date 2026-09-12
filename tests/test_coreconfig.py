@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from copy import deepcopy
 from pathlib import Path
 
 from lxml import etree
@@ -151,6 +152,67 @@ class CoreConfigTest(unittest.TestCase):
             ),
             "false",
         )
+
+    def test_restores_missing_sections_without_duplicates(self) -> None:
+        for path in (
+            "federation",
+            "federation/federation-server",
+            "federation/federation-server/tls",
+            "network",
+            "repository",
+            "security",
+            "auth",
+        ):
+            with self.subTest(path=path):
+                saved = coreconfig.read_xml(self.template)
+                parent_path = path.rpartition("/")[0]
+                parent = (
+                    coreconfig.require(saved, parent_path) if parent_path else saved
+                )
+                parent.remove(coreconfig.require(saved, path))
+                logging = coreconfig.require(saved, "logging")
+                logging.set("auditLoggingEnabled", "false")
+                self.save(saved)
+                before = self.destination.read_bytes()
+
+                self.prepare()
+                result = coreconfig.read_xml(self.destination)
+                for managed_path in coreconfig.MANAGED:
+                    self.assertEqual(len(coreconfig.select(result, managed_path)), 1)
+                self.assertEqual(
+                    etree.tostring(coreconfig.require(result, "logging")),
+                    etree.tostring(logging),
+                )
+                backup = self.destination.with_suffix(".xml.pre-merge-backup")
+                self.assertEqual(backup.read_bytes(), before)
+
+                restored = self.destination.read_bytes()
+                self.prepare()
+                self.assertEqual(self.destination.read_bytes(), restored)
+                self.assertEqual(backup.read_bytes(), before)
+
+    def test_ambiguous_saved_elements_are_not_replaced(self) -> None:
+        for path in (
+            "federation/federation-server",
+            "network/input[@_name='stdssl']",
+            "repository/connection",
+            "security/tls",
+        ):
+            with self.subTest(path=path):
+                saved = coreconfig.read_xml(self.template)
+                parent = coreconfig.require(saved, path.rpartition("/")[0])
+                parent.append(deepcopy(coreconfig.require(saved, path)))
+                self.save(saved)
+                before = self.destination.read_bytes()
+
+                with self.assertRaisesRegex(
+                    ValueError, "Multiple configuration elements match"
+                ):
+                    self.prepare()
+                self.assertEqual(self.destination.read_bytes(), before)
+                self.assertFalse(
+                    self.destination.with_suffix(".xml.pre-merge-backup").exists()
+                )
 
     def test_invalid_saved_xml_is_not_replaced(self) -> None:
         for contents in (
