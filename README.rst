@@ -240,6 +240,10 @@ This check clears HTTPS overrides, supplies an existing product identity and
 database marker, and compares the certificates actually imported into both JKS
 stores. It does not contact RMAPI or a database.
 
+Pull-request CI runs all four checks in fresh containers using the image it just
+built, before starting the standalone composition. Test containers have no network
+access or shared composition volumes. Failures block PR image publication.
+
 Versioning
 ^^^^^^^^^^
 

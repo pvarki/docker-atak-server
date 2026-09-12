@@ -39,8 +39,8 @@ jobs:
       pull-requests: write
       checks: write
     steps:
-      - name: Install git-lfs
-        run: sudo apt-get update && sudo apt-get install -y git-lfs
+      - name: Install git-lfs and jq
+        run: sudo apt-get update && sudo apt-get install -y git-lfs jq
       - uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -61,7 +61,28 @@ jobs:
           sed -i.bup s/^STATE=/STATE=CI/ takserver.env
           sed -i.bup s/^CITY=/CITY=CIty/ takserver.env
       - name: Build standalone image
-        run: docker compose --progress plain build takserver_initialization
+        run: |
+          docker compose --progress plain build takserver_initialization
+          tak_image=$(docker compose config --format json | jq -er '.services.takserver_initialization.image')
+          tak_image_id=$(docker image inspect --format '{{.Id}}' "$tak_image")
+          echo "TAK_TEST_IMAGE=$tak_image_id" >> "$GITHUB_ENV"
+      - name: Test configuration and standalone initialization
+        run: |
+          docker run --rm --pull=never --network none -v "$PWD:/workspace:ro" \
+            --entrypoint /usr/bin/python3 "$TAK_TEST_IMAGE" \
+            -B -m unittest discover -s /workspace/tests -v
+      - name: Test federation truststore initialization
+        run: |
+          docker run --rm --pull=never --network none -v "$PWD:/workspace:ro" \
+            --entrypoint /bin/bash "$TAK_TEST_IMAGE" /workspace/tests/test-fed-truststore.sh
+      - name: Test HTTPS keystore selection
+        run: |
+          docker run --rm --pull=never --network none -v "$PWD:/workspace:ro" \
+            --entrypoint /bin/bash "$TAK_TEST_IMAGE" /workspace/tests/test-api-keystore.sh
+      - name: Test RASENMAEHER initialization defaults
+        run: |
+          docker run --rm --pull=never --network none -v "$PWD:/workspace:ro" \
+            --entrypoint /usr/bin/python3 "$TAK_TEST_IMAGE" /workspace/tests/check_rm_defaults.py
       - name: Validate coreconfig
         run: |
           docker compose up takserver_config -d --wait --wait-timeout 180
