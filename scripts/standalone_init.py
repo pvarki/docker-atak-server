@@ -17,7 +17,9 @@ def prepare_directories(root: Path, scripts: Path) -> Path:
     certs = root / "data/certs"
     certs.mkdir(parents=True, exist_ok=True)
     if not any(certs.iterdir()):
-        shutil.copytree(root / "certs", certs, dirs_exist_ok=True)
+        # copytree also copies private image-layer SELinux labels, preventing
+        # other sidecars from reading the shared volume. cp -R inherits its labels.
+        subprocess.run(["cp", "-R", str(root / "certs") + "/.", str(certs)], check=True)
     metadata = certs / "cert-metadata.sh"
     metadata.write_text(
         metadata.read_text().replace("COUNTRY=US", "COUNTRY=${COUNTRY:-US}")
@@ -29,7 +31,8 @@ def prepare_directories(root: Path, scripts: Path) -> Path:
         link = root / name
         if not link.is_symlink():
             if link.exists():
-                link.rename(root / f"{name}.orig")
+                # Image-layer directories cannot always be renamed on OverlayFS.
+                shutil.move(link, root / f"{name}.orig")
             link.symlink_to(destination)
     return certs
 

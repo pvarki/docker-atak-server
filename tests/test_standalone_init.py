@@ -1,5 +1,6 @@
 """Standalone initialization and upgrades with the TAK distribution's local CA tools."""
 
+import errno
 import os
 import shutil
 import sys
@@ -46,6 +47,23 @@ class StandaloneTest(unittest.TestCase):
 
     def initialize(self) -> None:
         standalone_init.initialize(self.root, self.scripts)
+
+    def test_image_directories_can_be_moved_across_overlay_layers(self) -> None:
+        logs = self.root / "logs"
+        logs.mkdir()
+        (logs / "existing.log").write_text("existing log")
+        with patch(
+            "shutil.os.rename",
+            side_effect=OSError(errno.EXDEV, "Invalid cross-device link"),
+        ):
+            standalone_init.prepare_directories(self.root, self.scripts)
+        for name in ("certs", "logs"):
+            self.assertTrue((self.root / name).is_symlink())
+            self.assertEqual((self.root / name).resolve(), self.root / "data" / name)
+        self.assertTrue((self.root / "certs.orig/cert-metadata.sh").is_file())
+        self.assertEqual(
+            (self.root / "logs.orig/existing.log").read_text(), "existing log"
+        )
 
     def test_fresh_setup_https_rotation_and_admin_persistence(self) -> None:
         self.initialize()
