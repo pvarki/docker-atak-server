@@ -4,6 +4,8 @@
 ########################################################################
 ARG TEMURIN_VERSION="17"
 ARG TAK_RELEASE="5.8-RELEASE-69"
+ARG KW_PRODUCT_INIT_IMAGE="ghcr.io/pvarki/kraftwerk-helper-tool:1.4.0-260912"
+FROM ${KW_PRODUCT_INIT_IMAGE} AS product-init
 FROM pvarki/tak-server-dist:$TAK_RELEASE AS tak-files
 RUN mv /zips/takserver-docker-*.zip /tmp/takserver.zip
 
@@ -49,4 +51,5 @@ COPY templates /opt/templates
 COPY update /opt/tak/webcontent/update
 
 FROM install AS run
+COPY --from=product-init /kw_product_init /kw_product_init
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]

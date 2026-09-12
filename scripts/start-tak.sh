@@ -55,6 +55,11 @@ elif [ $1 = "config" ]; then
     java -jar -Xmx${CONFIG_MAX_HEAP}m -Dspring.profiles.active=config takserver.war
 elif [ $1 = "api" ]; then
     echo "Starting TAK API"
+    # TAK applies CoreConfig keystore overrides only to additional connectors.
+    # Its primary HTTPS connector reads Spring's SSL properties instead.
+    if [[ -n "${TAK_HTTPS_KEYSTORE_FILENAME:-}" ]]; then
+        export SERVER_SSL_KEY_STORE="${TAK_HTTPS_KEYSTORE_FILENAME}"
+    fi
     java -jar -Xmx${API_MAX_HEAP}m -Dspring.profiles.active=api,consolelog -Dkeystore.pkcs12.legacy takserver.war
 elif [ $1 = "retention" ]; then
     echo "Starting TAK Retention"

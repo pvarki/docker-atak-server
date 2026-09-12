@@ -63,6 +63,37 @@ Build the distribution::
 Now you have the build artefacts in outputs -directory.
 
 
+CFSSL and HTTPS certificates
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``/opt/scripts/firstrun_rm.sh`` initializes the product identity through RMAPI,
+which signs its CSR with CFSSL. It requests RSA explicitly because TAK 5.8 uses
+its global TLS key for RS256 JWT signing. No TAK Java classes are modified.
+
+Mount the same volume at ``/data/persistent`` in ``takinit`` and ``takrmapi``.
+The initializer owns the single-use CSR token in ``/pvarki/kraftwerk-init.json``;
+``takrmapi`` reuses the resulting ``private/mtlsclient.key`` and
+``public/mtlsclient.pem``. Existing RSA product credentials are reused. Older
+certificates with only client authentication are renewed through mTLS to obtain
+server authentication too. Deploy the corresponding RMAPI CFSSL profile update
+before this initializer.
+
+CoT on port 8089 uses ``/opt/tak/data/certs/files/takserver.jks`` with the CFSSL
+identity. HTTPS on port 8443 uses ``takserver-https.jks``, imported from
+``/le_certs/rasenmaeher/privkey.pem`` and ``fullchain.pem``. Set
+``TAK_HTTPS_KEYSTORE_FILENAME=/opt/tak/data/certs/files/takserver-https.jks``
+for all TAK processes; the integration compositions set this automatically.
+The API startup script also sets Spring's SSL keystore property because TAK's
+primary HTTPS connector ignores the per-connector keystore override.
+Both keystores use ``TAKSERVER_CERT_PASS`` / ``TAKSERVER_KEYSTORE_PASS``.
+Standalone initialization retains the original shared keystore default.
+
+Rerunning the initializer refreshes the keystores from their PEM files without
+regenerating the product key or reimporting the database. HTTPS certificate
+rotation therefore leaves CoT and JWT signing keys intact. CoT clients may use
+EC certificates. The truststores contain the CFSSL root and intermediate CAs.
+
+
 Versioning
 ^^^^^^^^^^
 
