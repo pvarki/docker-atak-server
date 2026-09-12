@@ -86,13 +86,47 @@ for all TAK processes; the integration compositions set this automatically.
 The API startup script also sets Spring's SSL keystore property because TAK's
 primary HTTPS connector ignores the per-connector keystore override.
 Both keystores use ``TAKSERVER_CERT_PASS`` / ``TAKSERVER_KEYSTORE_PASS``.
-Standalone initialization retains the original shared keystore default.
+The dedicated HTTPS keystore is also the image default when the override is unset.
 
 Rerunning the initializer refreshes the keystores from their PEM files without
 regenerating the product key or reimporting the database. HTTPS certificate
 rotation therefore leaves CoT and JWT signing keys intact. CoT clients may use
 EC certificates. The truststores contain the CFSSL root and intermediate CAs.
 
+
+Standalone certificates and persistence
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``/opt/scripts/firstrun.sh`` uses the standalone Python initializer. It needs no
+RASENMAEHER manifest, RMAPI, CFSSL service or ``kw_product_init``. It generates a
+local CA on first initialization and preserves existing CA, CoT and administrator
+identities on subsequent runs. CoT and JWT signing use the RSA identity in
+``takserver.jks``. HTTPS uses the separate ``takserver-https.jks`` store.
+
+By default, HTTPS receives its own EC P-256 identity signed by the local CA.
+New server certificates include ``TAK_SERVER_ADDRESS`` as a DNS or IP SAN.
+Clients must trust the local CA when this default is used. Existing CoT
+certificates are reused, including their original names and validity periods.
+
+To use an external HTTPS certificate, mount its files into the initialization
+container and set both ``TAK_HTTPS_KEY_FILENAME`` and ``TAK_HTTPS_CERT_FILENAME``
+in ``takserver.env``. The certificate PEM should contain the leaf and its chain.
+For encrypted private keys, also set ``TAK_HTTPS_KEY_PASSWORD``. HTTPS's JKS uses
+``TAKSERVER_CERT_PASS``, independently of the PEM private-key password. An optional
+``TAK_HTTPS_KEYSTORE_FILENAME`` override must be shared across TAK services and
+must point to a different store from CoT's ``takserver.jks``.
+
+Rerun initialization after replacing external HTTPS PEM files, then restart the
+API service to load the new keystore. The key/certificate pair is checked before
+the HTTPS store is replaced. Local generated identities are not automatically
+rotated. Database initialization remains gated by ``firstrun.done``; that marker
+does not block HTTPS refresh or adding the separate HTTPS store to an older
+standalone installation. Neither operation resets saved administrator XML.
+
+A missing federation truststore is initialized with the local CoT certificate
+and CA chain. An existing store, including imported remote CA certificates, is
+left unchanged. The persistent configuration ownership and migration rules
+below apply equally to standalone and RASENMAEHER deployments.
 
 Persistent administrator configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -164,8 +198,12 @@ OpenSSL, keytool and the matching configuration schema::
       -m unittest discover -s /workspace/tests -v
     docker run --rm -v "$PWD:/workspace:ro" --entrypoint /bin/bash \
       ghcr.io/pvarki/tak-server:5.8.69-260912 /workspace/tests/test-fed-truststore.sh
+    docker run --rm -v "$PWD:/workspace:ro" --entrypoint /bin/bash \
+      ghcr.io/pvarki/tak-server:5.8.69-260912 /workspace/tests/test-api-keystore.sh
 
-These tests do not start the full integration composition.
+These tests do not start the full integration composition. Standalone tests use
+real certificate tools but mock database initialization; the API keystore test
+executes the startup script with a stub JVM to inspect the Spring environment.
 
 Versioning
 ^^^^^^^^^^
