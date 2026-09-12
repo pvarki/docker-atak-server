@@ -20,6 +20,8 @@ jobs:
           fetch-depth: 0
       - name: Prepare env file for hooks
         run: cp takserver.env.example takserver.env
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.1.0
       - name: Run prek
         uses: j178/prek-action@v2
         env:
@@ -30,6 +32,8 @@ jobs:
 
   compose_validations:
     runs-on: arc-runner-set
+    env:
+      COMPOSE_PROJECT_NAME: takserver
     permissions:
       contents: read
       pull-requests: write
@@ -42,11 +46,12 @@ jobs:
           submodules: recursive
           fetch-depth: 0
           lfs: true
-      - name: validate coreconfig
+      - name: Prepare standalone environment
         run: | # pragma: allowlist secret
-          docker compose build --progress plain takserver_initialization
           cp takserver.env.example takserver.env
+          sed -i.bup s/^TAK_SERVER_ADDRESS=/TAK_SERVER_ADDRESS=localhost/ takserver.env
           sed -i.bup s/^POSTGRES_PASSWORD=/POSTGRES_PASSWORD=cipgpass/ takserver.env
+          sed -i.bup s/^ADMIN_CERT_PASS=/ADMIN_CERT_PASS=ciadminpass/ takserver.env
           sed -i.bup s/^TAKSERVER_CERT_PASS=/TAKSERVER_CERT_PASS=citakpass/ takserver.env
           sed -i.bup s/^COUNTRY=/COUNTRY=FI/ takserver.env
           sed -i.bup s/^CA_NAME=/CA_NAME=CICA/ takserver.env
@@ -55,9 +60,20 @@ jobs:
           sed -i.bup s/^ORGANIZATIONAL_UNIT=/ORGANIZATIONAL_UNIT=CI/ takserver.env
           sed -i.bup s/^STATE=/STATE=CI/ takserver.env
           sed -i.bup s/^CITY=/CITY=CIty/ takserver.env
-          docker compose -p takserver up takserver_config -d --wait || (docker compose logs && exit 1)
-          test $(docker inspect --format "{{json .State.Health.Status }}" takserver-takserver_config-1) = '"healthy"'
-          docker compose down -v
+      - name: Build standalone image
+        run: docker compose --progress plain build takserver_initialization
+      - name: Validate coreconfig
+        run: |
+          docker compose up takserver_config -d --wait --wait-timeout 180
+          docker compose exec -T takserver_config test -s /opt/tak/data/.coreconfig-ready
+          docker compose exec -T takserver_config keytool -list -keystore /opt/tak/data/certs/files/takserver.jks -storepass:env TAKSERVER_CERT_PASS >/dev/null
+          docker compose exec -T takserver_config keytool -list -keystore /opt/tak/data/certs/files/takserver-https.jks -storepass:env TAKSERVER_CERT_PASS >/dev/null
+      - name: Show composition logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Clean up composition
+        if: always()
+        run: docker compose down -v
 
   build_and_publish:
     runs-on: arc-runner-set

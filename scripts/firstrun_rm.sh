@@ -8,9 +8,9 @@ TAK_SERVER_CERT_FILENAME="${TAK_SERVER_CERT_FILENAME:-/data/persistent/public/mt
 TAK_HTTPS_KEY_FILENAME="${TAK_HTTPS_KEY_FILENAME:-/le_certs/rasenmaeher/privkey.pem}"
 TAK_HTTPS_CERT_FILENAME="${TAK_HTTPS_CERT_FILENAME:-/le_certs/rasenmaeher/fullchain.pem}"
 TAK_HTTPS_KEYSTORE_FILENAME="${TAK_HTTPS_KEYSTORE_FILENAME:-/opt/tak/data/certs/files/takserver-https.jks}"
-TAKSERVER_KEYSTORE_PASS="${TAKSERVER_KEYSTORE_PASS:-takservercertpass}"
+TAKSERVER_KEYSTORE_PASS="${TAKSERVER_KEYSTORE_PASS:-${TAKSERVER_CERT_PASS:-takservercertpass}}"
 RM_CERT_CHAIN_FILENAME="${RM_CERT_CHAIN_FILENAME:-/ca_public/ca_chain.pem}"
-KEYSTORE_PASS="${KEYSTORE_PASS:-takcacertpw}"
+KEYSTORE_PASS="${KEYSTORE_PASS:-${CA_PASS:-takcacertpw}}"
 
 mkdir -p "${TR}/data/logs" "${TR}/data/certs/files" /data/persistent
 if [[ ! -L "${TR}/logs" ]]; then
@@ -74,7 +74,8 @@ for ca in root_ca intermediate_ca; do
 done
 # Client identities on TAK and federation connections are issued by CFSSL.
 cp "${cert_work}/truststore.jks" "${TR}/data/certs/files/truststore-root.jks"
-cp "${cert_work}/truststore.jks" "${TR}/data/certs/files/fed-truststore.jks"
+KEYSTORE_PASS="${KEYSTORE_PASS}" /usr/bin/python3 /opt/scripts/init-fed-truststore.py \
+  "${TR}/data/certs/files/fed-truststore.jks" "${TAK_SERVER_CERT_FILENAME}" "${RM_CERT_CHAIN_FILENAME}"
 mv "${cert_work}/truststore.jks" "${TR}/data/certs/files/takserver-truststore.jks"
 
 if [[ -f "${TR}/data/firstrun.done" ]]; then
