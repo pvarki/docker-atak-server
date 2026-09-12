@@ -2,6 +2,13 @@
 Run TAK Java server in container
 ================================
 
+The runtime uses ``eclipse-temurin:17-jre-noble`` with Python/lxml and the
+certificate, database and shell tools required by initialization. The distribution
+is unpacked in a separate build stage so its ZIP archive is not retained in the
+runtime image. Editors and JDK development tools are not installed.
+Override the ``JAVA_RUNTIME_IMAGE`` build argument to test another compatible
+Ubuntu Noble Java 17 runtime; the image must provide ``java`` and ``keytool``.
+
 tldr::
 
     cp takserver.env.example takserver.env
