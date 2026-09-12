@@ -1,13 +1,13 @@
 """Merge deployment-owned settings into TAK's administrator-managed configuration."""
 
 import argparse
-from copy import deepcopy
 import os
-from pathlib import Path
 import tempfile
+from copy import deepcopy
+from pathlib import Path
+from typing import cast
 
 from lxml import etree
-
 
 NS = "http://bbn.com/marti/xml/config"
 NAMESPACES = {"c": NS}
@@ -61,14 +61,17 @@ MANAGED = {
 }
 
 
-def select(root, path):
+def select(root: etree._Element, path: str) -> list[etree._Element]:
     """Select elements in TAK's namespace, including named listeners."""
-    return root.xpath(
-        "/".join("c:" + part for part in path.split("/")), namespaces=NAMESPACES
+    return cast(
+        list[etree._Element],
+        root.xpath(
+            "/".join("c:" + part for part in path.split("/")), namespaces=NAMESPACES
+        ),
     )
 
 
-def one(root, path):
+def one(root: etree._Element, path: str) -> etree._Element | None:
     """Ambiguous deployment-owned elements must be resolved by an administrator."""
     matches = select(root, path)
     if len(matches) > 1:
@@ -76,7 +79,15 @@ def one(root, path):
     return matches[0] if matches else None
 
 
-def ensure(root, template, path):
+def require(root: etree._Element, path: str) -> etree._Element:
+    """Return a required element with an explicit error if the saved XML lacks it."""
+    element = one(root, path)
+    if element is None:
+        raise ValueError(f"Required configuration element missing: {path}")
+    return element
+
+
+def ensure(root: etree._Element, template: etree._Element, path: str) -> etree._Element:
     """Insert missing elements in template order without replacing existing siblings."""
     existing = one(root, path)
     if existing is not None:
@@ -99,7 +110,7 @@ def ensure(root, template, path):
     return element
 
 
-def merge(saved, template):
+def merge(saved: etree._Element, template: etree._Element) -> etree._Element:
     """Preserve admin settings and apply an explicit deployment ownership map."""
     result = deepcopy(saved)
     for path, attributes in MANAGED.items():
@@ -109,13 +120,13 @@ def merge(saved, template):
         target = ensure(result, template, path)
         for attribute in attributes:
             if attribute in source.attrib:
-                target.set(attribute, source.get(attribute))
+                target.set(attribute, source.attrib[attribute])
             else:
                 target.attrib.pop(attribute, None)
 
     # LDAP is configured entirely by the deployment environment. Other auth
     # providers and administrator additions outside this element are preserved.
-    auth = one(result, "auth")
+    auth = require(result, "auth")
     for ldap in select(result, "auth/ldap"):
         auth.remove(ldap)
     if one(template, "auth/ldap") is not None:
@@ -138,7 +149,7 @@ def merge(saved, template):
     return result
 
 
-def read_xml(path):
+def read_xml(path: Path) -> etree._Element:
     """Parse configuration without resolving external entities or DTDs."""
     parser = etree.XMLParser(
         resolve_entities=False, no_network=True, remove_blank_text=True
@@ -151,7 +162,7 @@ def read_xml(path):
     return tree.getroot()
 
 
-def atomic_write(path, data):
+def atomic_write(path: Path, data: bytes) -> None:
     """Publish complete configuration files with restrictive permissions."""
     descriptor, filename = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
@@ -164,7 +175,12 @@ def atomic_write(path, data):
         Path(filename).unlink(missing_ok=True)
 
 
-def prepare(template_path, destination, schema_path, legacy_path=None):
+def prepare(
+    template_path: Path,
+    destination: Path,
+    schema_path: Path,
+    legacy_path: Path | None = None,
+) -> None:
     """Validate before saving; prefer the config service's existing authoritative file."""
     schema = etree.XMLSchema(etree.parse(str(schema_path)))
     template = read_xml(template_path)
@@ -188,7 +204,7 @@ def prepare(template_path, destination, schema_path, legacy_path=None):
     atomic_write(destination, data)
 
 
-def main():
+def main() -> None:
     """Prepare the configuration before the config service starts."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("template", type=Path)

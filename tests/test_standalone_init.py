@@ -1,11 +1,11 @@
 """Standalone initialization and upgrades with the TAK distribution's local CA tools."""
 
 import os
-from pathlib import Path
 import shutil
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -14,7 +14,7 @@ import tls_identity  # noqa: E402
 
 
 class StandaloneTest(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.work = tempfile.TemporaryDirectory()
         self.addCleanup(self.work.cleanup)
         self.root = Path(self.work.name)
@@ -44,10 +44,10 @@ class StandaloneTest(unittest.TestCase):
         self.upgrade = self.database.start()
         self.addCleanup(self.database.stop)
 
-    def initialize(self):
+    def initialize(self) -> None:
         standalone_init.initialize(self.root, self.scripts)
 
-    def test_fresh_setup_https_rotation_and_admin_persistence(self):
+    def test_fresh_setup_https_rotation_and_admin_persistence(self) -> None:
         self.initialize()
         self.upgrade.assert_called_once_with(self.root)
         for name in ("takserver", "takserver-https"):
@@ -114,7 +114,7 @@ class StandaloneTest(unittest.TestCase):
         )
         self.assertEqual(exported, expected)
 
-    def test_old_initialized_volume_gets_separate_https_store(self):
+    def test_old_initialized_volume_gets_separate_https_store(self) -> None:
         self.initialize()
         cot = (self.files / "takserver.key").read_bytes()
         trust = (self.files / "fed-truststore.jks").read_bytes()
@@ -126,7 +126,7 @@ class StandaloneTest(unittest.TestCase):
         self.assertEqual((self.files / "takserver.key").read_bytes(), cot)
         self.assertEqual((self.files / "fed-truststore.jks").read_bytes(), trust)
 
-    def test_rejects_partial_https_configuration(self):
+    def test_rejects_partial_https_configuration(self) -> None:
         with patch.dict(os.environ, TAK_HTTPS_KEY_FILENAME="/missing/key.pem"):
             with self.assertRaisesRegex(ValueError, "Set both"):
                 self.initialize()

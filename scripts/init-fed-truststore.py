@@ -3,11 +3,11 @@
 import argparse
 import hashlib
 import os
-from pathlib import Path
 import re
 import ssl
 import subprocess
 import tempfile
+from pathlib import Path
 
 
 def initialize(destination: Path, identity: Path, chain: Path) -> None:

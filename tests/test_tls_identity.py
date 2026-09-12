@@ -1,18 +1,18 @@
 """Validate separate local identities and safe HTTPS refresh with real crypto tools."""
 
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import tls_identity  # noqa: E402
 
 
 class IdentityTest(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.work = tempfile.TemporaryDirectory()
         self.addCleanup(self.work.cleanup)
         self.folder = Path(self.work.name)
@@ -42,12 +42,12 @@ class IdentityTest(unittest.TestCase):
             env=self.environment,
         )
 
-    def create(self, name, keytype):
+    def create(self, name: str, keytype: str) -> None:
         tls_identity.create_local_identity(
             self.folder, name, "tak.test", self.password, self.password, keytype
         )
 
-    def import_store(self, name, destination):
+    def import_store(self, name: str, destination: Path) -> None:
         tls_identity.import_identity(
             self.folder / f"{name}.key",
             self.folder / f"{name}.pem",
@@ -56,7 +56,7 @@ class IdentityTest(unittest.TestCase):
             self.password,
         )
 
-    def test_separate_keys_hostname_chain_and_https_refresh(self):
+    def test_separate_keys_hostname_chain_and_https_refresh(self) -> None:
         self.create("takserver", "RSA")
         self.create("takserver-https", "EC")
         for name in ("takserver", "takserver-https"):
@@ -123,7 +123,7 @@ class IdentityTest(unittest.TestCase):
         self.assertEqual((self.folder / "takserver.jks").read_bytes(), cot)
         self.assertEqual((self.folder / "takserver.key").read_bytes(), cot_key)
 
-    def test_invalid_pair_preserves_existing_store(self):
+    def test_invalid_pair_preserves_existing_store(self) -> None:
         self.create("first", "EC")
         self.create("second", "EC")
         destination = self.folder / "https.jks"
@@ -139,7 +139,7 @@ class IdentityTest(unittest.TestCase):
             )
         self.assertEqual(destination.read_bytes(), original)
 
-    def test_partial_identity_is_not_regenerated(self):
+    def test_partial_identity_is_not_regenerated(self) -> None:
         key = self.folder / "partial.key"
         key.write_text("existing key")
         with self.assertRaisesRegex(ValueError, "Incomplete identity"):

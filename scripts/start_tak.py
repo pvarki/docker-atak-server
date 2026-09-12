@@ -3,11 +3,12 @@
 import argparse
 import fcntl
 import os
-from pathlib import Path
 import subprocess
 import tempfile
 import time
 import uuid
+from pathlib import Path
+from typing import TextIO
 
 import coreconfig
 
@@ -47,7 +48,7 @@ def prepare_configuration(root: Path, templates: Path) -> None:
     coreconfig.atomic_write(data / "TAKIgniteConfig.xml", ignite)
 
 
-def acquire_config_lock(data: Path):
+def acquire_config_lock(data: Path) -> tuple[TextIO, str]:
     """Hold exclusive ownership until the configuration JVM exits."""
     lock = (data / ".coreconfig-service.lock").open("a+")
     try:

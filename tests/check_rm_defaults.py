@@ -2,16 +2,16 @@
 
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import tls_identity  # noqa: E402
 
 
-def main():
+def main() -> None:
     environment = dict(os.environ)
     for name in list(environment):
         if name.startswith("TAK_HTTPS_") or name in (

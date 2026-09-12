@@ -1,11 +1,11 @@
 """Configuration-service ownership and shared startup behavior."""
 
 import os
-from pathlib import Path
 import shutil
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -16,14 +16,14 @@ import start_tak  # noqa: E402
 class StartupTest(unittest.TestCase):
     """Exercise shared files and readiness without requiring a running database."""
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.work = tempfile.TemporaryDirectory()
         self.addCleanup(self.work.cleanup)
         self.root = Path(self.work.name)
         self.data = self.root / "data"
         self.data.mkdir()
 
-    def test_readiness_requires_current_live_owner(self):
+    def test_readiness_requires_current_live_owner(self) -> None:
         (self.data / ".coreconfig-ready").write_text("stale")
         with self.assertRaises(TimeoutError):
             start_tak.wait_for_configuration(self.data, timeout=0)
@@ -40,7 +40,7 @@ class StartupTest(unittest.TestCase):
         with self.assertRaises(TimeoutError):
             start_tak.wait_for_configuration(self.data, timeout=0)
 
-    def test_prepares_one_authority_and_preserves_admin_restart_changes(self):
+    def test_prepares_one_authority_and_preserves_admin_restart_changes(self) -> None:
         shutil.copy("/opt/tak/CoreConfig.xsd", self.root / "CoreConfig.xsd")
         templates = Path(__file__).resolve().parents[1] / "templates"
         environment = {
@@ -57,13 +57,15 @@ class StartupTest(unittest.TestCase):
             self.assertEqual(common.resolve(), canonical)
             self.assertTrue((self.data / "TAKIgniteConfig.xml").is_file())
             saved = coreconfig.read_xml(canonical)
-            coreconfig.one(saved, "federation").set("allowMissionFederation", "false")
+            coreconfig.require(saved, "federation").set(
+                "allowMissionFederation", "false"
+            )
             from lxml import etree
 
             canonical.write_bytes(etree.tostring(saved))
             start_tak.prepare_configuration(self.root, templates)
             self.assertEqual(
-                coreconfig.one(coreconfig.read_xml(common), "federation").get(
+                coreconfig.require(coreconfig.read_xml(common), "federation").get(
                     "allowMissionFederation"
                 ),
                 "false",

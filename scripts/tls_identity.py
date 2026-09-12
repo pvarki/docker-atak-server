@@ -2,16 +2,19 @@
 
 import ipaddress
 import os
-from pathlib import Path
 import re
 import secrets
 import subprocess
 import tempfile
+from collections.abc import Mapping
+from pathlib import Path
 
 
-def run(command: list[str], **kwargs) -> bytes:
+def run(
+    command: list[str], *, env: Mapping[str, str] | None = None, cwd: Path | None = None
+) -> bytes:
     """Do not emit private material or command arguments containing credentials."""
-    result = subprocess.run(command, check=True, capture_output=True, **kwargs)
+    result = subprocess.run(command, check=True, capture_output=True, env=env, cwd=cwd)
     return result.stdout
 
 

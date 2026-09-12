@@ -2,12 +2,12 @@
 
 import fcntl
 import os
-from pathlib import Path
 import re
 import shutil
 import subprocess
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from pathlib import Path
 
 import tls_identity
 
@@ -120,7 +120,7 @@ def prepare_certificates(root: Path, scripts: Path) -> None:
         password,
     )
 
-    if https_key:
+    if https_key and https_certificate:
         key = Path(https_key)
         certificate = Path(https_certificate)
         key_password = os.environ.get("TAK_HTTPS_KEY_PASSWORD", "")
@@ -212,7 +212,7 @@ def initialize(root: Path, scripts: Path) -> None:
         marker = data / "firstrun.done"
         if not marker.exists():
             upgrade_database(root)
-            marker.write_text(datetime.now(timezone.utc).strftime("%Y%m%dT%H%M") + "\n")
+            marker.write_text(datetime.now(UTC).strftime("%Y%m%dT%H%M") + "\n")
 
 
 if __name__ == "__main__":
