@@ -37,6 +37,9 @@ class StandaloneTest(unittest.TestCase):
         self.env = patch.dict(os.environ, environment)
         self.env.start()
         self.addCleanup(self.env.stop)
+        for name in list(os.environ):
+            if name.startswith("TAK_HTTPS_"):
+                os.environ.pop(name)
         self.database = patch.object(standalone_init, "upgrade_database")
         self.upgrade = self.database.start()
         self.addCleanup(self.database.stop)

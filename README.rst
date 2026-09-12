@@ -87,6 +87,12 @@ The API startup script also sets Spring's SSL keystore property because TAK's
 primary HTTPS connector ignores the per-connector keystore override.
 Both keystores use ``TAKSERVER_CERT_PASS`` / ``TAKSERVER_KEYSTORE_PASS``.
 The dedicated HTTPS keystore is also the image default when the override is unset.
+Neither startup mode requires ``TAK_HTTPS_*`` overrides for certificate separation.
+RASENMAEHER defaults to its product mTLS PEM for CoT and the files in
+``/le_certs/rasenmaeher`` for HTTPS; standalone defaults to two locally generated
+identities. Omitting HTTPS configuration never selects CoT's keystore for HTTPS.
+When the optional password aliases are unset, RASENMAEHER initialization uses
+``TAKSERVER_CERT_PASS`` for identity stores and ``CA_PASS`` for truststores.
 
 Rerunning the initializer refreshes the keystores from their PEM files without
 regenerating the product key or reimporting the database. HTTPS certificate
@@ -204,6 +210,17 @@ OpenSSL, keytool and the matching configuration schema::
 These tests do not start the full integration composition. Standalone tests use
 real certificate tools but mock database initialization; the API keystore test
 executes the startup script with a stub JVM to inspect the Spring environment.
+
+To also exercise the RASENMAEHER initialization defaults with synthetic internal
+and external certificate chains, run in a fresh disposable container::
+
+    docker run --rm -v "$PWD:/workspace:ro" -v "$PWD/scripts:/opt/scripts:ro" \
+      --entrypoint /usr/bin/python3 ghcr.io/pvarki/tak-server:5.8.69-260912 \
+      /workspace/tests/check_rm_defaults.py
+
+This check clears HTTPS overrides, supplies an existing product identity and
+database marker, and compares the certificates actually imported into both JKS
+stores. It does not contact RMAPI or a database.
 
 Versioning
 ^^^^^^^^^^

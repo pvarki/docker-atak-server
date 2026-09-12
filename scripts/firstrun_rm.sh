@@ -8,9 +8,9 @@ TAK_SERVER_CERT_FILENAME="${TAK_SERVER_CERT_FILENAME:-/data/persistent/public/mt
 TAK_HTTPS_KEY_FILENAME="${TAK_HTTPS_KEY_FILENAME:-/le_certs/rasenmaeher/privkey.pem}"
 TAK_HTTPS_CERT_FILENAME="${TAK_HTTPS_CERT_FILENAME:-/le_certs/rasenmaeher/fullchain.pem}"
 TAK_HTTPS_KEYSTORE_FILENAME="${TAK_HTTPS_KEYSTORE_FILENAME:-/opt/tak/data/certs/files/takserver-https.jks}"
-TAKSERVER_KEYSTORE_PASS="${TAKSERVER_KEYSTORE_PASS:-takservercertpass}"
+TAKSERVER_KEYSTORE_PASS="${TAKSERVER_KEYSTORE_PASS:-${TAKSERVER_CERT_PASS:-takservercertpass}}"
 RM_CERT_CHAIN_FILENAME="${RM_CERT_CHAIN_FILENAME:-/ca_public/ca_chain.pem}"
-KEYSTORE_PASS="${KEYSTORE_PASS:-takcacertpw}"
+KEYSTORE_PASS="${KEYSTORE_PASS:-${CA_PASS:-takcacertpw}}"
 
 mkdir -p "${TR}/data/logs" "${TR}/data/certs/files" /data/persistent
 if [[ ! -L "${TR}/logs" ]]; then

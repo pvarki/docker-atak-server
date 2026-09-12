@@ -32,6 +32,9 @@ class CoreConfigTest(unittest.TestCase):
             TAK_SERVER_ADDRESS="tak.test",
         )
         environment.pop("LDAP_BIND_PASSWORD", None)
+        for name in list(environment):
+            if name.startswith("TAK_HTTPS_"):
+                environment.pop(name)
         template_path = Path(__file__).resolve().parents[1] / "templates/CoreConfig.tpl"
         self.template.write_bytes(
             subprocess.run(
