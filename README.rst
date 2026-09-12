@@ -94,6 +94,79 @@ rotation therefore leaves CoT and JWT signing keys intact. CoT clients may use
 EC certificates. The truststores contain the CFSSL root and intermediate CAs.
 
 
+Persistent administrator configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The configuration service owns ``/opt/tak/data/CoreConfig_config.xml`` on the
+persistent TAK volume. All services read this file through their
+``/opt/tak/CoreConfig.xml`` symlink. The common ``/opt/tak/data/CoreConfig.xml``
+path used by UserManager and takrmapi is also a symlink to this authority.
+
+On configuration-service startup, Python renders the template and merges only
+explicitly deployment-owned settings into the saved XML:
+
+* The ``stdssl`` and ``stdssl-noarchive`` listeners, including their ports and
+  archiving setting, and the ``https`` connector's deployment settings.
+* Database connection parameters, local TLS identity/trust paths and passwords,
+  and OCSP configuration.
+* Deployment authentication defaults, the user-authentication file location,
+  and LDAP configuration.
+* The federation server's local identity keystore and web base URL.
+
+Other saved settings survive, including federation peers, group mappings,
+federation policy, federation truststore path/password, custom listeners and
+administrator adjustments outside these managed fields. The exact attribute
+allowlist is in ``scripts/coreconfig.py``. New template defaults outside this
+allowlist apply only to new installations; changes to existing installations
+need an explicit migration or an administrator edit.
+
+The merged XML must validate against the installed TAK schema. Conflicting
+listener ports and invalid XML stop startup without replacing the saved file.
+A successful change first saves ``CoreConfig_config.xml.pre-merge-backup`` and
+then atomically publishes the new configuration. An unchanged merge does not
+replace the backup. Configuration files and these backups are written with
+owner-only permissions because they contain credentials.
+
+Only the configuration service renders shared XML. It holds an exclusive lock
+for its lifetime; other services wait up to 180 seconds for the current service
+to finish preparing configuration. Restart the configuration service to apply
+deployment-environment changes. Restarting API or messaging alone does not
+re-render configuration.
+
+For an existing installation, the saved ``CoreConfig_config.xml`` takes priority
+over the common file. If absent, the common file is used as the migration source.
+The original common file is retained as ``CoreConfig.xml.pre-authority-backup``
+before that path becomes a symlink. Old process-specific files are left in place
+but are no longer read. Recreate all TAK service containers with the updated
+image together: an old container still running the old startup script can
+overwrite saved configuration. Keep the existing TAK volume; deleting it would
+delete administrator configuration and certificates.
+
+Federation truststore initialization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``firstrun_rm.sh`` initializes a missing ``fed-truststore.jks`` with the public
+product mTLS certificate from ``kw_product_init`` and the local CA chain.
+Repeated certificates are deduplicated; no private key is imported. Creation is
+atomic, and an existing store is left untouched, preserving administrator-added
+federation trust. Later product/CA rotation or truststore-password changes require
+explicit federation truststore maintenance; restarting initialization does not
+replace this store. Other local TLS stores continue to be refreshed as before.
+
+Configuration regression tests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Run these checks using the TAK image, which provides Python, lxml, gomplate,
+OpenSSL, keytool and the matching configuration schema::
+
+    docker run --rm -v "$PWD:/workspace:ro" --entrypoint /usr/bin/python3 \
+      ghcr.io/pvarki/tak-server:5.8.69-260912 \
+      -m unittest discover -s /workspace/tests -v
+    docker run --rm -v "$PWD:/workspace:ro" --entrypoint /bin/bash \
+      ghcr.io/pvarki/tak-server:5.8.69-260912 /workspace/tests/test-fed-truststore.sh
+
+These tests do not start the full integration composition.
+
 Versioning
 ^^^^^^^^^^
 
