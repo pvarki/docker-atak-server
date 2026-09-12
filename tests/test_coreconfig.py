@@ -183,6 +183,23 @@ class CoreConfigTest(unittest.TestCase):
         self.assertIsNone(coreconfig.one(disabled, "auth/ldap"))
         self.assertIsNone(coreconfig.one(disabled, "auth").get("default"))
 
+    def test_additional_cot_listener_does_not_change_https_identity(self):
+        config = coreconfig.read_xml(self.template)
+        self.assertEqual(
+            coreconfig.one(config, "network/connector[@_name='https']").get(
+                "keystoreFile"
+            ),
+            "/opt/tak/data/certs/files/takserver-https.jks",
+        )
+        self.assertEqual(
+            coreconfig.one(config, "security/tls").get("keystoreFile"),
+            "/opt/tak/data/certs/files/takserver.jks",
+        )
+        for name, port in (("stdssl", "8089"), ("stdssl-noarchive", "8090")):
+            listener = coreconfig.one(config, f"network/input[@_name='{name}']")
+            self.assertEqual(listener.get("port"), port)
+            self.assertEqual(listener.get("protocol"), "tls")
+
 
 if __name__ == "__main__":
     unittest.main()
