@@ -55,7 +55,7 @@ class StartupTest(unittest.TestCase):
             canonical = self.data / "CoreConfig_config.xml"
             common = self.data / "CoreConfig.xml"
             self.assertEqual(common.resolve(), canonical)
-            self.assertTrue((self.data / "TAKIgniteConfig.xml").is_file())
+            self.assertFalse((self.data / "TAKIgniteConfig.xml").exists())
             saved = coreconfig.read_xml(canonical)
             coreconfig.require(saved, "federation").set(
                 "allowMissionFederation", "false"
