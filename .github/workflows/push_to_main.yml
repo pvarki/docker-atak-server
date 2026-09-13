@@ -21,6 +21,8 @@ jobs:
           fetch-depth: 0
       - name: Prepare env file for hooks
         run: cp takserver.env.example takserver.env
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.1.0
       - name: Run prek
         uses: j178/prek-action@v2
         env:

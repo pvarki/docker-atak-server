@@ -14,12 +14,11 @@
         <!-- Disable webtak and non-admin user interfaces -->
         <connector port="8443" _name="https" enableWebtak="{{getenv "WEBTAK_ENABLE" "false"}}" enableNonAdminUI="false"
             keystore="JKS"
-            keystoreFile="{{getenv "TAK_HTTPS_KEYSTORE_FILENAME" "/opt/tak/data/certs/files/takserver.jks"}}"
+            keystoreFile="{{getenv "TAK_HTTPS_KEYSTORE_FILENAME" "/opt/tak/data/certs/files/takserver-https.jks"}}"
             keystorePass="{{.Env.TAKSERVER_CERT_PASS}}" />
     </network>
 {{if getenv "LDAP_BIND_PASSWORD" ""}}
     <auth default="ldap" x509groups="true" x509addAnonymous="false">
-        <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
         <ldap url="{{getenv "LDAP_URL" "ldap://openldap:1389"}}"
               updateinterval="60"
               userstring="uid={username},ou=users,dc=example,dc=org"
@@ -32,6 +31,7 @@
               groupNameExtractorRegex="(?:cn|CN)=(?:tak_)?(.+?),"
               groupprefix="CN=tak_"
         />
+        <File location="/opt/tak/data/UserAuthenticationFile.xml"/>
     </auth>
 {{else}}
     <auth x509groups="true" x509addAnonymous="false">
