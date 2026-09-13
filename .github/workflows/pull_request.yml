@@ -83,9 +83,9 @@ jobs:
         run: |
           docker run --rm --pull=never --network none -v "$PWD:/workspace:ro" \
             --entrypoint /usr/bin/python3 "$TAK_TEST_IMAGE" /workspace/tests/check_rm_defaults.py
-      - name: Validate coreconfig
+      - name: Validate separate TAK containers
         run: |
-          docker compose up takserver_config -d --wait --wait-timeout 180
+          docker compose up -d --wait --wait-timeout 300
           docker compose exec -T takserver_config test -s /opt/tak/data/.coreconfig-ready
           docker compose exec -T takserver_config keytool -list -keystore /opt/tak/data/certs/files/takserver.jks -storepass:env TAKSERVER_CERT_PASS >/dev/null
           docker compose exec -T takserver_config keytool -list -keystore /opt/tak/data/certs/files/takserver-https.jks -storepass:env TAKSERVER_CERT_PASS >/dev/null
