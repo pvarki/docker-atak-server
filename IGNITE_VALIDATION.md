@@ -80,3 +80,22 @@ validation with their volumes retained. The final images remain local as
 `localhost/tak-split:server` and `localhost/tak-split:rmapi`. These checks used
 cached runtime layers with the changed source; they did not download and rebuild
 the upstream TAK distribution or exercise a live federation peer.
+
+## Rebase onto the slim Java runtime
+
+On 2026-09-13 the networking branch was rebased onto `feat/slim-java-runtime`
+(`c962caa`). The earlier results above describe the pre-rebase validation.
+The two outbound trust implementations were consolidated into the atomic
+`java_truststore.py` implementation, retaining per-profile files and explicit
+JVM trust overrides. Plugin launcher compilation now runs in a separate JDK
+stage; the final image uses the JRE.
+
+Post-rebase checks passed with cached JRE runtime layers and the same launcher
+build commands as the Dockerfile: 27 regression tests, all prek checks, the
+federation truststore/API keystore/RASENMAEHER defaults CI scripts, and live
+standalone startup of all five independently networked TAK roles. Plugin remote
+APIs were available. Authenticated HTTPS, remote JNI user/group reads and EC CoT
+traffic on 8089/8090 with CA/hostname verification passed. The runtime contained
+keytool and the compiled launcher, with no javac. The root integration suite was
+not repeated for this rebase. Logs are `/private/tmp/tak-rebase-*.log`; the
+isolated standalone composition was stopped again with its volumes retained.
