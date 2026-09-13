@@ -112,7 +112,7 @@ def main() -> None:
     ignite = ignite_config.prepare(root, Path("/opt/templates"), args.profile)
     link_file(root / "TAKIgniteConfig.xml", ignite)
     os.environ["TAKCL_CORECONFIG_PATH"] = str(canonical)
-    java_truststore.configure(root)
+    java_truststore.configure(root, runtime=ignite.parent)
     os.execv("/bin/bash", ["/bin/bash", "/opt/scripts/run-tak.sh", args.profile])
 
 
