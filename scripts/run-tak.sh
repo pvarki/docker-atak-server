@@ -35,10 +35,10 @@ elif [ $1 = "api" ]; then
     exec java -jar -Xmx${API_MAX_HEAP}m -Dspring.profiles.active=api,consolelog -Dkeystore.pkcs12.legacy takserver.war
 elif [ $1 = "retention" ]; then
     echo "Starting TAK Retention"
-    exec java -jar -Xmx${RETENTION_MAX_HEAP}m takserver-retention.jar
+    exec java -jar -Xmx${RETENTION_MAX_HEAP}m -Dlogback.configurationFile="${LOGGING_CONFIG:-${TR}/logback-stdout.xml}" takserver-retention.jar
 elif [ $1 = "pm" ]; then
     echo "Starting TAK Plugin Manager"
-    exec java -jar -Xmx${PLUGIN_MANAGER_MAX_HEAP}m -Dloader.path=WEB-INF/lib-provided,WEB-INF/lib,WEB-INF/classes,file:lib/ takserver-pm.jar
+    exec java -jar -Xmx${PLUGIN_MANAGER_MAX_HEAP}m -Dlogback.configurationFile="${LOGGING_CONFIG:-${TR}/logback-stdout.xml}" -Dloader.main=fi.pvarki.tak.PluginLauncher -Dloader.path=WEB-INF/lib-provided,WEB-INF/lib,WEB-INF/classes,file:lib/ takserver-pm.jar
 else
   echo "Please provide right TAK component: messaging, config, api, retention or pm"
 fi

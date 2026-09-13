@@ -49,6 +49,12 @@ COPY docker/entrypoint.sh /entrypoint.sh
 COPY scripts /opt/scripts
 COPY templates /opt/templates
 COPY update /opt/tak/webcontent/update
+COPY java /tmp/tak-launcher
+RUN unzip -q /opt/tak/takserver-pm.jar 'BOOT-INF/classes/*' 'BOOT-INF/lib/*' -d /tmp/tak-plugin-api \
+    && javac --release 17 -cp '/tmp/tak-plugin-api/BOOT-INF/classes:/tmp/tak-plugin-api/BOOT-INF/lib/*' \
+      -d /tmp/tak-launcher/classes /tmp/tak-launcher/PluginLauncher.java \
+    && jar --create --file /opt/tak/lib/pvarki-launcher.jar -C /tmp/tak-launcher/classes . \
+    && rm -rf /tmp/tak-plugin-api /tmp/tak-launcher
 
 FROM install AS run
 COPY --from=product-init /kw_product_init /kw_product_init
