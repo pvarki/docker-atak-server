@@ -3,28 +3,24 @@
 # So work around like this                                             #
 ########################################################################
 ARG TEMURIN_VERSION="17"
+ARG JAVA_RUNTIME_IMAGE="eclipse-temurin:${TEMURIN_VERSION}-jre-noble"
 ARG TAK_RELEASE="5.8-RELEASE-69"
 ARG KW_PRODUCT_INIT_IMAGE="ghcr.io/pvarki/kraftwerk-helper-tool:1.4.0-260912"
 FROM ${KW_PRODUCT_INIT_IMAGE} AS product-init
 FROM pvarki/tak-server-dist:$TAK_RELEASE AS tak-files
 RUN mv /zips/takserver-docker-*.zip /tmp/takserver.zip
 
-FROM eclipse-temurin:${TEMURIN_VERSION}-noble AS deps
+FROM ${JAVA_RUNTIME_IMAGE} AS deps
 ENV \
   LC_ALL=C.UTF-8
-RUN apt-get update && apt-get install -y \
-      emacs-nox \
-      net-tools \
-      netcat-traditional \
-      vim \
-      nmon \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      openssl \
       python3-lxml \
       unzip \
       tini \
       curl \
       pwgen \
       zip \
-      openssh-client \
       postgresql-client \
       jq \
     && apt-get autoremove -y \
@@ -37,8 +33,7 @@ COPY --from=hairyhenderson/gomplate:stable /gomplate /bin/gomplate
 SHELL ["/bin/bash", "-lc"]
 
 
-FROM deps AS install
-COPY docker/entrypoint.sh /entrypoint.sh
+FROM deps AS unpack
 COPY --from=tak-files /tmp/takserver.zip /tmp/takserver.zip
 RUN cd /tmp \
     && unzip takserver.zip \
@@ -46,6 +41,11 @@ RUN cd /tmp \
     && export DISTDIR=`echo takserver-docker-*` \
     && mv $DISTDIR"/tak" /opt/tak \
     && true
+
+# Keep the distribution archive out of the runtime image's layers.
+FROM deps AS install
+COPY --from=unpack /opt/tak /opt/tak
+COPY docker/entrypoint.sh /entrypoint.sh
 COPY scripts /opt/scripts
 COPY templates /opt/templates
 COPY update /opt/tak/webcontent/update
