@@ -1,5 +1,10 @@
 # TAK Ignite bindings and future sidecar removal
 
+The migration described below is now implemented on `feat/container-ignite-networking`.
+See [the current runtime documentation](README.rst) and
+[validation status](IGNITE_VALIDATION.md). The original operator experiment below
+is retained as historical context; its shared server XML is not the new startup layout.
+
 Date: 2026-09-13. Source: the initial JNI implementation in
 `../../python-tak-operator`.
 
