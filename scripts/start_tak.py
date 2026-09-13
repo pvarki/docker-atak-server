@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import TextIO
 
 import coreconfig
+import ignite_config
 import java_truststore
 
 
@@ -41,12 +42,6 @@ def prepare_configuration(root: Path, templates: Path) -> None:
     if common.exists() and not common.is_symlink() and not backup.exists():
         coreconfig.atomic_write(backup, common.read_bytes())
     link_file(common, canonical)
-    ignite = subprocess.run(
-        ["gomplate", "-f", str(templates / "TAKIgniteConfig.tpl")],
-        check=True,
-        capture_output=True,
-    ).stdout
-    coreconfig.atomic_write(data / "TAKIgniteConfig.xml", ignite)
 
 
 def acquire_config_lock(data: Path) -> tuple[TextIO, str]:
@@ -114,9 +109,10 @@ def main() -> None:
         wait_for_configuration(data)
     canonical = data / "CoreConfig_config.xml"
     link_file(root / "CoreConfig.xml", canonical)
-    link_file(root / "TAKIgniteConfig.xml", data / "TAKIgniteConfig.xml")
+    ignite = ignite_config.prepare(root, Path("/opt/templates"), args.profile)
+    link_file(root / "TAKIgniteConfig.xml", ignite)
     os.environ["TAKCL_CORECONFIG_PATH"] = str(canonical)
-    java_truststore.configure(root)
+    java_truststore.configure(root, runtime=ignite.parent)
     os.execv("/bin/bash", ["/bin/bash", "/opt/scripts/run-tak.sh", args.profile])
 
 

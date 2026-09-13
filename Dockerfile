@@ -42,9 +42,20 @@ RUN cd /tmp \
     && mv $DISTDIR"/tak" /opt/tak \
     && true
 
-# Keep the distribution archive out of the runtime image's layers.
+# Compile the plugin bootstrap with a JDK while keeping the runtime JRE-only.
+FROM eclipse-temurin:${TEMURIN_VERSION}-jdk-noble AS plugin-launcher
+COPY --from=unpack /opt/tak/takserver-pm.jar /tmp/takserver-pm.jar
+COPY java /tmp/tak-launcher
+WORKDIR /tmp/tak-plugin-api
+RUN jar --extract --file /tmp/takserver-pm.jar BOOT-INF/classes BOOT-INF/lib \
+    && javac --release 17 -cp '/tmp/tak-plugin-api/BOOT-INF/classes:/tmp/tak-plugin-api/BOOT-INF/lib/*' \
+      -d /tmp/tak-launcher/classes /tmp/tak-launcher/PluginLauncher.java \
+    && jar --create --file /tmp/pvarki-launcher.jar -C /tmp/tak-launcher/classes .
+
+# Keep the distribution archive and build tools out of runtime image layers.
 FROM deps AS install
 COPY --from=unpack /opt/tak /opt/tak
+COPY --from=plugin-launcher /tmp/pvarki-launcher.jar /opt/tak/lib/pvarki-launcher.jar
 COPY docker/entrypoint.sh /entrypoint.sh
 COPY scripts /opt/scripts
 COPY templates /opt/templates

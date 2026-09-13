@@ -32,6 +32,44 @@ Note, for things that live in the volumes (like TAK certs) you must nuke the vol
 
 
 
+Container networking
+^^^^^^^^^^^^^^^^^^^^
+
+Configuration, messaging, API, retention and plugin manager each have their own
+network namespace. Messaging owns CoT (8089 and 8090) and federation (9001/9002);
+API owns HTTPS (8443). Ignite ports are reachable only through the private TAK
+network and are not published on the host.
+
+Every process resolves ``TAK_IGNITE_BIND_ADDRESS`` at startup and verifies that
+the resulting IPv4 address belongs to its container. Compose uses distinct aliases
+on ``taknet`` so extra network attachments cannot select the wrong interface.
+Without an override, the container hostname is resolved. ``TAK_IGNITE_SEEDS``
+defaults to ``takmsg-ignite:47500`` and accepts comma-separated discovery addresses.
+
+Ignite XML and working files live under ``/opt/tak/runtime/<profile>`` in each
+container. Only CoreConfig remains on the shared data volume, with configuration
+as its sole startup writer. Old shared Ignite XML is ignored. Recreating containers
+refreshes their local addresses without deleting certificates or admin settings.
+
+TAK 5.8's non-multicast finder replaces remote seeds with the local bind address.
+The template therefore retains Ignite's default multicast finder, which also
+honors explicit static seeds. Keep this network private to one TAK deployment.
+Messaging is the sole Ignite server; the other roles and takrmapi are clients.
+Start the complete composition: starting configuration alone cannot form the grid.
+
+PluginService.main() hardcodes localhost. The added ``pvarki-launcher.jar`` starts
+the same Spring service after initializing Ignite from local XML. It is compiled
+against the shipped plugin JAR; upstream TAK JARs are left unchanged.
+
+Optional resource settings are ``TAK_IGNITE_POOL_SIZE``,
+``TAK_IGNITE_CACHE_INITIAL_BYTES`` and ``TAK_IGNITE_CACHE_MAX_BYTES``. Unset values
+retain TAK's sizing defaults. A 64 MB server cache is too small even for basic
+CoT subscriptions; local validation uses a 256 MB maximum for messaging.
+Discovery connection/client/failure timeouts default to 10/30/60 seconds and can
+be set with ``TAK_IGNITE_CONNECTION_TIMEOUT``, ``TAK_IGNITE_CLIENT_TIMEOUT`` and
+``TAK_IGNITE_FAILURE_TIMEOUT``. Allow time for clients to reconnect after a restart.
+
+
 Creating client packages locally
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -106,16 +144,6 @@ regenerating the product key or reimporting the database. HTTPS certificate
 rotation therefore leaves CoT and JWT signing keys intact. CoT clients may use
 EC certificates. The truststores contain the CFSSL root and intermediate CAs.
 
-Each TAK service also builds its own outbound Java truststore at
-``/opt/tak/java-cacerts.p12`` on startup. It retains the current JRE's public CA
-roots and adds ``/ca_public/ca_chain.pem``, ``/ca_public/miniwerk_ca.pem`` when
-using local mkcert, and the standalone CA at ``data/certs/files/ca.pem`` when
-present. This lets Java verify internal HTTPS services and the HTTPS OCSP
-responder. Restart services after CA changes to rebuild their outbound stores.
-The CoT client truststore and administrator-managed federation truststore remain
-separate; these public HTTPS roots do not authorize CoT or federation clients.
-
-
 Standalone certificates and persistence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -149,6 +177,15 @@ A missing federation truststore is initialized with the local CoT certificate
 and CA chain. An existing store, including imported remote CA certificates, is
 left unchanged. The persistent configuration ownership and migration rules
 below apply equally to standalone and RASENMAEHER deployments.
+
+Each TAK process also builds a private outbound Java truststore at startup.
+It lives at ``/opt/tak/runtime/<profile>/java-cacerts.p12`` and is rebuilt
+atomically from the current JRE's public CAs and mounted CFSSL chain/root/intermediate,
+the optional miniwerk development CA, and the standalone CA when present.
+This allows HTTPS OCSP requests to validate the deployment's local CA without
+changing CoT or federation's client truststores. Restart processes after CA
+rotation. An explicit ``-Djavax.net.ssl.trustStore=...`` in JVM options takes
+precedence; that custom store must contain the required outbound CAs.
 
 Persistent administrator configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

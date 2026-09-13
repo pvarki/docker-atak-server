@@ -31,18 +31,17 @@ services:
     volumes:
       - takserver_data:/opt/tak/data
     networks:
-      - taknet
-    ports:
-      - '8089:8089'
-      - '8090:8090'
-      - '8443:8443'
+      taknet:
+        aliases: [takconfig-ignite]
+    environment:
+      TAK_IGNITE_BIND_ADDRESS: takconfig-ignite
     command: ./opt/scripts/start-tak.sh config
-    healthcheck:
-      test: 'true'  # FIXME
+    healthcheck: &takhealth
+      test: [CMD, /usr/bin/python3, /opt/scripts/healthcheck.py, config]
       interval: 5s
       timeout: 5s
-      retries: 3
-      start_period: 5s
+      retries: 6
+      start_period: 180s
 
   takserver_messaging:
     <<: *takbuildinfo
@@ -52,17 +51,24 @@ services:
       takdb:
         condition: service_healthy
       takserver_config:
-        condition: service_healthy
+        # Messaging is the Ignite server; config cannot become ready without it.
+        condition: service_started
     volumes:
       - takserver_data:/opt/tak/data
-    network_mode: "service:takserver_config"
+    networks:
+      taknet:
+        aliases: [takmsg-ignite]
+    environment:
+      TAK_IGNITE_BIND_ADDRESS: takmsg-ignite
+    ports:
+      - '8089:8089'
+      - '8090:8090'
+      - '9001:9001'
+      - '9002:9002'
     command: ./opt/scripts/start-tak.sh messaging
     healthcheck:
-      test: 'true'  # FIXME
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      <<: *takhealth
+      test: [CMD, /usr/bin/python3, /opt/scripts/healthcheck.py, messaging]
 
   takserver_api:
     <<: *takbuildinfo
@@ -77,14 +83,17 @@ services:
         condition: service_healthy
     volumes:
       - takserver_data:/opt/tak/data
-    network_mode: "service:takserver_messaging"
+    networks:
+      taknet:
+        aliases: [takapi-ignite]
+    environment:
+      TAK_IGNITE_BIND_ADDRESS: takapi-ignite
+    ports:
+      - '8443:8443'
     command: ./opt/scripts/start-tak.sh api
     healthcheck:
-      test: 'true'  # FIXME
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      <<: *takhealth
+      test: [CMD, /usr/bin/python3, /opt/scripts/healthcheck.py, api]
 
   takserver_retention:
     <<: *takbuildinfo
@@ -99,14 +108,15 @@ services:
         condition: service_healthy
     volumes:
       - takserver_data:/opt/tak/data
-    network_mode: "service:takserver_messaging"
+    networks:
+      taknet:
+        aliases: [takreten-ignite]
+    environment:
+      TAK_IGNITE_BIND_ADDRESS: takreten-ignite
     command: ./opt/scripts/start-tak.sh retention
     healthcheck:
-      test: 'true'  # FIXME
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      <<: *takhealth
+      test: [CMD, /usr/bin/python3, /opt/scripts/healthcheck.py, retention]
 
   takserver_pluginmanager:
     <<: *takbuildinfo
@@ -121,14 +131,15 @@ services:
         condition: service_healthy
     volumes:
       - takserver_data:/opt/tak/data
-    network_mode: "service:takserver_messaging"
+    networks:
+      taknet:
+        aliases: [takplug-ignite]
+    environment:
+      TAK_IGNITE_BIND_ADDRESS: takplug-ignite
     command: ./opt/scripts/start-tak.sh pm
     healthcheck:
-      test: 'true'  # FIXME
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      <<: *takhealth
+      test: [CMD, /usr/bin/python3, /opt/scripts/healthcheck.py, pm]
 
   takdb:
     image: postgis/postgis:15-3.3
