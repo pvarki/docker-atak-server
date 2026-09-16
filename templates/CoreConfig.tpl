@@ -58,6 +58,7 @@
     <dissemination smartRetry="false" />
 
     <filter>
+        <urladd host="https://{{.Env.TAK_SERVER_ADDRESS}}:8443"/>
         <flowtag enable="false" text=""/>
         <streamingbroker enable="true"/>
         <scrubber enable="false" action="overwrite"/>
