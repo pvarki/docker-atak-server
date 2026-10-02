@@ -29,7 +29,7 @@ jobs:
           SKIP: no-commit-to-branch
 
   build_and_publish:
-    runs-on: ubuntu-latest
+    runs-on: arc-runner-set
     needs: [checks]
     permissions:
       contents: read
