@@ -4,7 +4,7 @@
 ########################################################################
 ARG TEMURIN_VERSION="17"
 ARG JAVA_RUNTIME_IMAGE="eclipse-temurin:${TEMURIN_VERSION}-jre-noble"
-ARG TAK_RELEASE="5.8-RELEASE-69"
+ARG TAK_RELEASE="5.8-RELEASE-84"
 ARG KW_PRODUCT_INIT_IMAGE="ghcr.io/pvarki/kraftwerk-helper-tool:1.4.0-260912"
 FROM ${KW_PRODUCT_INIT_IMAGE} AS product-init
 FROM pvarki/tak-server-dist:$TAK_RELEASE AS tak-files

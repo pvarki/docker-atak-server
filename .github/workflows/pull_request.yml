@@ -4,7 +4,7 @@ on:
 
 # Remember to change TAK_RELEASE also in push_to_main.yml
 env:
-  TAK_RELEASE: 5.8-RELEASE-69
+  TAK_RELEASE: 5.8-RELEASE-84
 
 jobs:
   checks:
