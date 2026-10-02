@@ -22,6 +22,8 @@ jobs:
         run: cp takserver.env.example takserver.env
       - name: Install uv
         uses: astral-sh/setup-uv@v10.1.0
+      - name: CI workflow parity check
+        run: uv run --dev -m unittest tests.test_ci_parity -v
       - name: Run prek
         uses: j178/prek-action@v2
         env:
