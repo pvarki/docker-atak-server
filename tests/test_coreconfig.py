@@ -32,6 +32,7 @@ class CoreConfigTest(unittest.TestCase):
             TAK_SERVER_ADDRESS="tak.test",
         )
         self.environment.pop("LDAP_BIND_PASSWORD", None)
+        self.environment.pop("LDAP_UPDATE_INTERVAL", None)
         for name in list(self.environment):
             if name.startswith("TAK_HTTPS_"):
                 self.environment.pop(name)
@@ -246,6 +247,16 @@ class CoreConfigTest(unittest.TestCase):
         enabled = coreconfig.read_xml(self.destination)
         self.assertEqual(
             coreconfig.require(enabled, "auth/ldap").get("url"), "ldap://directory.test"
+        )
+        self.assertEqual(
+            coreconfig.require(enabled, "auth/ldap").get("updateinterval"), "6000"
+        )
+        self.environment["LDAP_UPDATE_INTERVAL"] = "12000"
+        self.render_template()
+        self.prepare()
+        configured = coreconfig.read_xml(self.destination)
+        self.assertEqual(
+            coreconfig.require(configured, "auth/ldap").get("updateinterval"), "12000"
         )
         # Fresh RASENMAEHER startup must also validate the actual LDAP template.
         self.destination.unlink()

@@ -20,7 +20,7 @@
 {{if getenv "LDAP_BIND_PASSWORD" ""}}
     <auth default="ldap" x509groups="true" x509addAnonymous="false">
         <ldap url="{{getenv "LDAP_URL" "ldap://openldap:1389"}}"
-              updateinterval="60"
+              updateinterval="{{getenv "LDAP_UPDATE_INTERVAL" "6000"}}"
               userstring="uid={username},ou=users,dc=example,dc=org"
               style="DS"
               ldapSecurityType="simple"
