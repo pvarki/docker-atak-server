@@ -22,6 +22,12 @@ jobs:
         run: cp takserver.env.example takserver.env
       - name: Install uv
         uses: astral-sh/setup-uv@v10.1.0
+      - name: Check TAK release sync
+        run: uv run --frozen -m unittest tests.test_workflow_release -v
+      - name: Check publish workflow parity
+        uses: pvarki/config-ci-library/.github/actions/check-workflow-parity@main
+        with:
+          allowed_diffs: extra-tag
       - name: Run prek
         uses: j178/prek-action@v2
         env:
