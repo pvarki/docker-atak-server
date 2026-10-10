@@ -2,7 +2,7 @@
 <Configuration xmlns="http://bbn.com/marti/xml/config"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="/opt/tak/CoreConfig.xsd">
-    <network multicastTTL="5">
+    <network multicastTTL="5" MissionStrictUidMissionMembership="false">
         <input _name="stdssl" protocol="tls" port="8089" coreVersion="2"/>
         <input _name="stdssl-noarchive" protocol="tls" port="8090" coreVersion="2" archive="false"/>
 
